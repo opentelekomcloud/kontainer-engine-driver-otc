@@ -554,7 +554,6 @@ func setupNetwork(client services.Client, state *clusterState) error {
 		state.ManagedResources.LbEip = true
 		state.LBFloatingIP = eip.PublicAddress
 	}
-
 	return nil
 }
 
@@ -714,6 +713,7 @@ func getClient(state *clusterState) (client services.Client, err error) {
 func cleanupManagedResources(client services.Client, state *clusterState) error {
 	logrus.Info("Cleanup process started")
 	resources := state.ManagedResources
+
 	if err := cleanUpLB(client, state.LoadBalancer); err != nil {
 		return err
 	}
@@ -722,6 +722,18 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 	}
 	if resources.Cluster {
 		resources.Cluster = false
+	}
+	if resources.ClusterEip {
+		if err := client.DeleteFloatingIP(state.ClusterFloatingIP); err != nil {
+			return err
+		}
+		resources.ClusterEip = false
+	}
+	if resources.LbEip {
+		if err := client.DeleteFloatingIP(state.LBFloatingIP); err != nil {
+			return err
+		}
+		resources.LbEip = false
 	}
 	if resources.Subnet {
 		if err := client.DeleteSubnet(state.VpcID, state.SubnetID); err != nil {
