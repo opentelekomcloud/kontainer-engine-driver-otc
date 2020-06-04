@@ -64,7 +64,7 @@ func getDriverOpts() *types.DriverOptions {
 	intOptions := map[string]int64{
 		"clusterEipBandwidthSize": 10,
 		"dataVolumeSize":          100,
-		"rootVolumeSize":          400,
+		"rootVolumeSize":          40,
 		"nodeCount":               1,
 		"appPort":                 80,
 	}
@@ -123,6 +123,9 @@ func TestDriver_CreateCluster(t *testing.T) {
 
 	driver := NewDriver()
 	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
-	logrus.Debug(info, err)
+	require.NoError(t, err)
+
+	err = driver.Remove(ctx, info)
+	logrus.Debug(err)
 	require.NoError(t, err)
 }

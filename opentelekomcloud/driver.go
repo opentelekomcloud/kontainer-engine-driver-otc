@@ -723,13 +723,13 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 		resources.Cluster = false
 	}
 	if resources.Subnet {
-		if err := client.DeleteVPC(state.SubnetID); err != nil {
+		if err := client.DeleteSubnet(state.VpcID, state.SubnetID); err != nil {
 			return err
 		}
 		resources.Subnet = false
 	}
 	if resources.Vpc {
-		if err := client.DeleteVPC(state.SubnetID); err != nil {
+		if err := client.DeleteVPC(state.VpcID); err != nil {
 			return err
 		}
 		resources.Vpc = false
@@ -737,13 +737,16 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 	return nil
 }
 
-func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (clusterInfo *types.ClusterInfo, err error) {
+func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (clusterInfo *types.ClusterInfo, err error) {
 	logrus.Info("Start creating cluster")
 	state, err := stateFromOpts(opts)
-
 	if err != nil {
 		return nil, err
 	}
+
+	info := &types.ClusterInfo{}
+	defer storeState(info, state)
+
 	state.AppProtocol = string(listeners.ProtocolTCP)
 	client, err := getClient(state)
 	if err != nil {
@@ -1057,4 +1060,16 @@ func NewDriver() types.Driver {
 	driver.driverCapabilities.AddCapability(types.SetClusterSizeCapability)
 
 	return driver
+}
+
+func storeState(info *types.ClusterInfo, state *clusterState) error {
+	bytes, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+	if info.Metadata == nil {
+		info.Metadata = map[string]string{}
+	}
+	info.Metadata["state"] = string(bytes)
+	return nil
 }
