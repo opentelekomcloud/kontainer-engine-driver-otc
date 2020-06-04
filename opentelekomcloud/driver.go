@@ -712,6 +712,7 @@ func getClient(state *clusterState) (client services.Client, err error) {
 }
 
 func cleanupManagedResources(client services.Client, state *clusterState) error {
+	logrus.Info("Cleanup process started")
 	resources := state.ManagedResources
 	if err := cleanUpLB(client, state.LoadBalancer); err != nil {
 		return err
@@ -758,6 +759,7 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 	state.ManagedResources = managedResources{}
 	defer func() {
 		if err != nil {
+			logrus.Error(err)
 			logrus.WithError(cleanupManagedResources(client, state)).Info("creation failed")
 		}
 	}()
