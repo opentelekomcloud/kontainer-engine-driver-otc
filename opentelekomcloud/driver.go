@@ -421,7 +421,8 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 			BandwidthSize: int(intOpt("cluster-eip-bandwidth-size", "clusterEipBandwidthSize")),
 			BandwidthType: strOpt("cluster-eip-share-type", "clusterEipShareType"),
 		},
-		AppPort:      int(intOpt("appPort", "AppPort")),
+		AppPort:      int(intOpt("app-port", "appPort")),
+		AppProtocol:  strOpt("app-protocol", "appProtocol"),
 		CreateLB:     boolOpt("create-load-balancer", "createLoadBalancer"),
 		LBFloatingIP: strOpt("lb-floating-ip", "lbFloatingIP"),
 		LBEIPOptions: services.ElasticIPOpts{
@@ -769,8 +770,6 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 	defer func() {
 		logrus.WithError(storeState(info, state)).Info("Save cluster state: ", state)
 	}()
-
-	state.AppProtocol = string(listeners.ProtocolTCP)
 	client, err := getClient(state)
 	if err != nil {
 		return nil, err
