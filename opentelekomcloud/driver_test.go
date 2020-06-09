@@ -33,7 +33,7 @@ func getDriverOpts() *types.DriverOptions {
 	stringOptions := map[string]string{
 		"accessKey":            os.Getenv("accessKey"),
 		"authenticationMode":   "rbac",
-		"availabilityZone":     "eu-de-01",
+		"availabilityZone":     "eu-de-03",
 		"bmsPeriodType":        "month",
 		"clusterEipShareType":  "PER",
 		"clusterEipType":       "5_bgp",
@@ -49,7 +49,7 @@ func getDriverOpts() *types.DriverOptions {
 		"lbEipShareType":       "PER",
 		"lbEipType":            "5_bgp",
 		"name":                 name,
-		"nodeFlavor":           "s2.large.1",
+		"nodeFlavor":           "s2.large.2",
 		"nodeOs":               "EulerOS 2.5",
 		"password":             os.Getenv("password"),
 		"projectName":          os.Getenv("projectName"),

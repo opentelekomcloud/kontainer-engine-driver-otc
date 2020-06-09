@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/openstack/cce/v3/clusters"
 	"github.com/huaweicloud/golangsdk/openstack/cce/v3/nodes"
 	"github.com/huaweicloud/golangsdk/openstack/networking/v2/extensions/lbaas_v2/listeners"
@@ -385,8 +386,7 @@ func (d *CCEDriver) GetDriverUpdateOptions(context.Context) (*types.DriverFlags,
 func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 	logrus.Info("Start setting state from provided opts: \n", opts)
 	strOpt, strSliceOpt, intOpt, boolOpt := getters(opts)
-
-	region := strOpt("region")
+	projectName := strOpt("project-name", "projectName")
 	state := &clusterState{
 		ClusterInfo: types.ClusterInfo{
 			Version:   strOpt("cluster-version", "clusterVersion"),
@@ -397,7 +397,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 			Token:       strOpt("token"),
 			Username:    strOpt("username"),
 			Password:    strOpt("password"),
-			ProjectName: strOpt("project-name", "projectName"),
+			ProjectName: projectName,
 			DomainName:  strOpt("domain-name", "domainName"),
 			AccessKey:   strOpt("access-key", "accessKey"),
 			SecretKey:   strOpt("secret-key", "secretKey"),
@@ -406,7 +406,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 		DisplayName:           strOpt("display-name", "displayName"),
 		Description:           strOpt("description"),
 		ProjectName:           strOpt("project-name", "projectName"),
-		Region:                region,
+		Region:                strOpt("region"),
 		ClusterType:           strOpt("cluster-type", "clusterType"),
 		ClusterFlavor:         strOpt("cluster-flavor", "clusterFlavor"),
 		ClusterBillingMode:    int(intOpt("cluster-billing-mode", "clusterBillingMode")),
@@ -431,7 +431,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 		},
 
 		NodeConfig: services.CreateNodesOpts{
-			Region:           region,
+			Region:           projectName,
 			FlavorID:         strOpt("node-flavor", "nodeFlavor"),
 			AvailabilityZone: strOpt("availability-zone", "availabilityZone"),
 			KeyPair:          strOpt("key-pair", "keyPair"),
@@ -739,6 +739,10 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 		if err := client.DeleteSubnet(state.VpcID, state.SubnetID); err != nil {
 			return err
 		}
+		err := client.WaitForSubnetStatus(state.SubnetID, "")
+		if err, ok := err.(golangsdk.ErrDefault404); !ok {
+			return err
+		}
 		resources.Subnet = false
 	}
 	if resources.Vpc {
@@ -759,7 +763,9 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 	}
 
 	info := &types.ClusterInfo{}
-	defer storeState(info, state)
+	defer func() {
+		logrus.WithError(storeState(info, state)).Info("Save cluster state: ", state)
+	}()
 
 	state.AppProtocol = string(listeners.ProtocolTCP)
 	client, err := getClient(state)
@@ -937,6 +943,9 @@ func (d *CCEDriver) Remove(_ context.Context, clusterInfo *types.ClusterInfo) er
 	}
 	client, err := getClient(state)
 	if err != nil {
+		return err
+	}
+	if err := client.DeleteNodes(state.ClusterID, state.NodeIDs); err != nil {
 		return err
 	}
 	if err := client.DeleteCluster(state.ClusterID); err != nil {
