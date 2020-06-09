@@ -747,6 +747,7 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 		}
 		resources.Vpc = false
 	}
+	logrus.Info("Cleanup process finished")
 	return nil
 }
 
@@ -929,6 +930,7 @@ func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInf
 }
 
 func (d *CCEDriver) Remove(_ context.Context, clusterInfo *types.ClusterInfo) error {
+	logrus.Info("Get state from info")
 	state, err := stateFromInfo(clusterInfo)
 	if err != nil {
 		return err

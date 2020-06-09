@@ -8,7 +8,6 @@ import (
 	"github.com/opentelekomcloud-infra/crutch-house/clientconfig"
 	"github.com/opentelekomcloud-infra/crutch-house/services"
 	"github.com/rancher/kontainer-engine/types"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -116,16 +115,15 @@ func TestDriver_CreateCluster(t *testing.T) {
 
 	client := computeClient(t)
 	_, err := client.CreateKeyPair(kpName, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, client.DeleteKeyPair(kpName))
 	}()
 
 	driver := NewDriver()
 	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	err = driver.Remove(ctx, info)
-	logrus.Debug(err)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 }
