@@ -497,6 +497,7 @@ func stateToInfo(info *types.ClusterInfo, state clusterState) error {
 }
 
 func setupNetwork(client services.Client, state *clusterState) error {
+	logrus.Info("Setup network process started")
 	if state.VpcID == "" && state.VpcName != "" {
 		vpcID, err := client.FindVPC(state.VpcName)
 		if err != nil {
@@ -554,6 +555,7 @@ func setupNetwork(client services.Client, state *clusterState) error {
 		state.ManagedResources.LbEip = true
 		state.LBFloatingIP = eip.PublicAddress
 	}
+	logrus.Info("Setup network process finished")
 	return nil
 }
 
@@ -757,6 +759,7 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 
 func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (clusterInfo *types.ClusterInfo, err error) {
 	logrus.Info("Start creating cluster")
+	logrus.Info("Get state from opts")
 	state, err := stateFromOpts(opts)
 	if err != nil {
 		return nil, err
