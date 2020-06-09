@@ -10,7 +10,7 @@ replace (
 require (
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/huaweicloud/golangsdk v0.0.0-20200414012957-3b8a408c2816
-	github.com/opentelekomcloud-infra/crutch-house v0.1.1-0.20200514125758-fd2f78354958
+	github.com/opentelekomcloud-infra/crutch-house v0.1.1-0.20200609072713-cf79f34d7070
 	github.com/pkg/errors v0.8.1
 	github.com/rancher/kontainer-engine v0.0.4-dev.0.20200406202044-bf3f55d3710a
 	github.com/sirupsen/logrus v1.4.2

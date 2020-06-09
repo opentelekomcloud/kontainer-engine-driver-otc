@@ -8,7 +8,6 @@ import (
 	"github.com/opentelekomcloud-infra/crutch-house/clientconfig"
 	"github.com/opentelekomcloud-infra/crutch-house/services"
 	"github.com/rancher/kontainer-engine/types"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,7 +33,7 @@ func getDriverOpts() *types.DriverOptions {
 	stringOptions := map[string]string{
 		"accessKey":            os.Getenv("accessKey"),
 		"authenticationMode":   "rbac",
-		"availabilityZone":     "eu-de-01",
+		"availabilityZone":     "eu-de-03",
 		"bmsPeriodType":        "month",
 		"clusterEipShareType":  "PER",
 		"clusterEipType":       "5_bgp",
@@ -50,7 +49,7 @@ func getDriverOpts() *types.DriverOptions {
 		"lbEipShareType":       "PER",
 		"lbEipType":            "5_bgp",
 		"name":                 name,
-		"nodeFlavor":           "s2.large.1",
+		"nodeFlavor":           "s2.large.2",
 		"nodeOs":               "EulerOS 2.5",
 		"password":             os.Getenv("password"),
 		"projectName":          os.Getenv("projectName"),
@@ -64,7 +63,7 @@ func getDriverOpts() *types.DriverOptions {
 	intOptions := map[string]int64{
 		"clusterEipBandwidthSize": 10,
 		"dataVolumeSize":          100,
-		"rootVolumeSize":          400,
+		"rootVolumeSize":          40,
 		"nodeCount":               1,
 		"appPort":                 80,
 	}
@@ -116,13 +115,15 @@ func TestDriver_CreateCluster(t *testing.T) {
 
 	client := computeClient(t)
 	_, err := client.CreateKeyPair(kpName, "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, client.DeleteKeyPair(kpName))
 	}()
 
 	driver := NewDriver()
 	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
-	logrus.Debug(info, err)
-	require.NoError(t, err)
+	assert.NoError(t, err)
+
+	err = driver.Remove(ctx, info)
+	assert.NoError(t, err)
 }

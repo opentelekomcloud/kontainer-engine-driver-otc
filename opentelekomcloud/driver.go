@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/openstack/cce/v3/clusters"
 	"github.com/huaweicloud/golangsdk/openstack/cce/v3/nodes"
 	"github.com/huaweicloud/golangsdk/openstack/networking/v2/extensions/lbaas_v2/listeners"
@@ -385,8 +386,7 @@ func (d *CCEDriver) GetDriverUpdateOptions(context.Context) (*types.DriverFlags,
 func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 	logrus.Info("Start setting state from provided opts: \n", opts)
 	strOpt, strSliceOpt, intOpt, boolOpt := getters(opts)
-
-	region := strOpt("region")
+	projectName := strOpt("project-name", "projectName")
 	state := &clusterState{
 		ClusterInfo: types.ClusterInfo{
 			Version:   strOpt("cluster-version", "clusterVersion"),
@@ -397,7 +397,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 			Token:       strOpt("token"),
 			Username:    strOpt("username"),
 			Password:    strOpt("password"),
-			ProjectName: strOpt("project-name", "projectName"),
+			ProjectName: projectName,
 			DomainName:  strOpt("domain-name", "domainName"),
 			AccessKey:   strOpt("access-key", "accessKey"),
 			SecretKey:   strOpt("secret-key", "secretKey"),
@@ -406,7 +406,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 		DisplayName:           strOpt("display-name", "displayName"),
 		Description:           strOpt("description"),
 		ProjectName:           strOpt("project-name", "projectName"),
-		Region:                region,
+		Region:                strOpt("region"),
 		ClusterType:           strOpt("cluster-type", "clusterType"),
 		ClusterFlavor:         strOpt("cluster-flavor", "clusterFlavor"),
 		ClusterBillingMode:    int(intOpt("cluster-billing-mode", "clusterBillingMode")),
@@ -431,7 +431,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 		},
 
 		NodeConfig: services.CreateNodesOpts{
-			Region:           region,
+			Region:           projectName,
 			FlavorID:         strOpt("node-flavor", "nodeFlavor"),
 			AvailabilityZone: strOpt("availability-zone", "availabilityZone"),
 			KeyPair:          strOpt("key-pair", "keyPair"),
@@ -497,6 +497,7 @@ func stateToInfo(info *types.ClusterInfo, state clusterState) error {
 }
 
 func setupNetwork(client services.Client, state *clusterState) error {
+	logrus.Info("Setup network process started")
 	if state.VpcID == "" && state.VpcName != "" {
 		vpcID, err := client.FindVPC(state.VpcName)
 		if err != nil {
@@ -554,7 +555,7 @@ func setupNetwork(client services.Client, state *clusterState) error {
 		state.ManagedResources.LbEip = true
 		state.LBFloatingIP = eip.PublicAddress
 	}
-
+	logrus.Info("Setup network process finished")
 	return nil
 }
 
@@ -712,7 +713,9 @@ func getClient(state *clusterState) (client services.Client, err error) {
 }
 
 func cleanupManagedResources(client services.Client, state *clusterState) error {
+	logrus.Info("Cleanup process started")
 	resources := state.ManagedResources
+
 	if err := cleanUpLB(client, state.LoadBalancer); err != nil {
 		return err
 	}
@@ -722,28 +725,51 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 	if resources.Cluster {
 		resources.Cluster = false
 	}
+	if resources.ClusterEip {
+		if err := client.DeleteFloatingIP(state.ClusterFloatingIP); err != nil {
+			return err
+		}
+		resources.ClusterEip = false
+	}
+	if resources.LbEip {
+		if err := client.DeleteFloatingIP(state.LBFloatingIP); err != nil {
+			return err
+		}
+		resources.LbEip = false
+	}
 	if resources.Subnet {
-		if err := client.DeleteVPC(state.SubnetID); err != nil {
+		if err := client.DeleteSubnet(state.VpcID, state.SubnetID); err != nil {
+			return err
+		}
+		err := client.WaitForSubnetStatus(state.SubnetID, "")
+		if err, ok := err.(golangsdk.ErrDefault404); !ok {
 			return err
 		}
 		resources.Subnet = false
 	}
 	if resources.Vpc {
-		if err := client.DeleteVPC(state.SubnetID); err != nil {
+		if err := client.DeleteVPC(state.VpcID); err != nil {
 			return err
 		}
 		resources.Vpc = false
 	}
+	logrus.Info("Cleanup process finished")
 	return nil
 }
 
-func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (clusterInfo *types.ClusterInfo, err error) {
+func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (clusterInfo *types.ClusterInfo, err error) {
 	logrus.Info("Start creating cluster")
+	logrus.Info("Get state from opts")
 	state, err := stateFromOpts(opts)
-
 	if err != nil {
 		return nil, err
 	}
+
+	info := &types.ClusterInfo{}
+	defer func() {
+		logrus.WithError(storeState(info, state)).Info("Save cluster state: ", state)
+	}()
+
 	state.AppProtocol = string(listeners.ProtocolTCP)
 	client, err := getClient(state)
 	if err != nil {
@@ -755,6 +781,7 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, info *t
 	state.ManagedResources = managedResources{}
 	defer func() {
 		if err != nil {
+			logrus.Error(err)
 			logrus.WithError(cleanupManagedResources(client, state)).Info("creation failed")
 		}
 	}()
@@ -912,12 +939,16 @@ func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInf
 }
 
 func (d *CCEDriver) Remove(_ context.Context, clusterInfo *types.ClusterInfo) error {
+	logrus.Info("Get state from info")
 	state, err := stateFromInfo(clusterInfo)
 	if err != nil {
 		return err
 	}
 	client, err := getClient(state)
 	if err != nil {
+		return err
+	}
+	if err := client.DeleteNodes(state.ClusterID, state.NodeIDs); err != nil {
 		return err
 	}
 	if err := client.DeleteCluster(state.ClusterID); err != nil {
@@ -1057,4 +1088,16 @@ func NewDriver() types.Driver {
 	driver.driverCapabilities.AddCapability(types.SetClusterSizeCapability)
 
 	return driver
+}
+
+func storeState(info *types.ClusterInfo, state *clusterState) error {
+	bytes, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+	if info.Metadata == nil {
+		info.Metadata = map[string]string{}
+	}
+	info.Metadata["state"] = string(bytes)
+	return nil
 }
