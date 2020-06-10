@@ -124,6 +124,9 @@ func TestDriver_CreateCluster(t *testing.T) {
 	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
 	assert.NoError(t, err)
 
+	info, err = driver.PostCheck(ctx, info)
+	assert.NoError(t, err)
+
 	err = driver.Remove(ctx, info)
 	assert.NoError(t, err)
 }
