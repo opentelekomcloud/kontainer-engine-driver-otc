@@ -612,6 +612,11 @@ func createLB(client services.Client, state *clusterState, nodeIPsChan chan []st
 	}
 	loadBalancer.LB = lb.ID
 
+	err = client.BindFloatingIPToPort(state.LBFloatingIP, lb.VipPortID)
+	if err != nil {
+		return err
+	}
+
 	listener, err := client.CreateLBListener(&listeners.CreateOpts{
 		LoadbalancerID: lb.ID,
 		Protocol:       listeners.Protocol(state.AppProtocol),
