@@ -59,6 +59,7 @@ func getDriverOpts() *types.DriverOptions {
 		"subnet":               subnetName,
 		"username":             os.Getenv("username"),
 		"vpc":                  vpcName,
+		"appProtocol":          "TCP",
 	}
 	intOptions := map[string]int64{
 		"clusterEipBandwidthSize": 10,

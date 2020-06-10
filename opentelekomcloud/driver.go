@@ -886,26 +886,25 @@ func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInf
 		logrus.Debugf("cert info %s", string(jsonData))
 	}
 
-	internalServer := ""
 	for _, cluster := range cert.Clusters {
-		if cluster.Name == "internalCluster" {
-			internalServer = cluster.Cluster.Server
+		switch cluster.Name {
+		case "internalCluster":
 			clusterInfo.RootCaCertificate = cluster.Cluster.CertAuthorityData
+			break
+		case "externalCluster":
+			clusterInfo.Endpoint = cluster.Cluster.Server
+			break
 		}
 	}
 
-	if state.UseFloatingIP {
-		clusterInfo.Endpoint = fmt.Sprintf("https://%s:5443", state.ClusterFloatingIP)
-	} else {
-		clusterInfo.Endpoint = internalServer
-	}
+	state.Endpoint = clusterInfo.Endpoint
 
 	clusterInfo.Status = cluster.Status.Phase
 	clusterInfo.ClientKey = cert.Users[0].User.ClientKeyData
 	clusterInfo.ClientCertificate = cert.Users[0].User.ClientCertData
 	clusterInfo.Username = cert.Users[0].Name
 
-	clientSet, err := getClientSet(state)
+	clientSet, err := getClientSet(clusterInfo)
 	if err != nil {
 		return nil, fmt.Errorf("error creating clientset: %v", err)
 	}
@@ -913,7 +912,7 @@ func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInf
 	failureCount := 0
 
 	for {
-		clusterInfo.ServiceAccountToken, err = generateServiceAccountToken(ctx, clientSet)
+		clusterInfo.ServiceAccountToken, err = util.GenerateServiceAccountToken(clientSet)
 
 		if err == nil {
 			logrus.Info("service account token generated successfully")
@@ -1016,21 +1015,21 @@ func (d *CCEDriver) GetCapabilities(context.Context) (*types.Capabilities, error
 	return &d.driverCapabilities, nil
 }
 
-func getClientSet(state *clusterState) (clientSet *kubernetes.Clientset, err error) {
-	certBytes, err := base64.StdEncoding.DecodeString(state.ClientCertificate)
+func getClientSet(info *types.ClusterInfo) (clientSet *kubernetes.Clientset, err error) {
+	certBytes, err := base64.StdEncoding.DecodeString(info.ClientCertificate)
 	if err != nil {
 		return nil, err
 	}
-	keyBytes, err := base64.StdEncoding.DecodeString(state.ClientKey)
+	keyBytes, err := base64.StdEncoding.DecodeString(info.ClientKey)
 	if err != nil {
 		return nil, err
 	}
-	rootBytes, err := base64.StdEncoding.DecodeString(state.RootCaCertificate)
+	rootBytes, err := base64.StdEncoding.DecodeString(info.RootCaCertificate)
 	if err != nil {
 		return nil, err
 	}
 	config := &rest.Config{
-		Host: state.Endpoint,
+		Host: info.Endpoint,
 		TLSClientConfig: rest.TLSClientConfig{
 			CAData:   rootBytes,
 			CertData: certBytes,
@@ -1041,11 +1040,7 @@ func getClientSet(state *clusterState) (clientSet *kubernetes.Clientset, err err
 }
 
 func (d *CCEDriver) RemoveLegacyServiceAccount(_ context.Context, info *types.ClusterInfo) error {
-	state, err := stateFromInfo(info)
-	if err != nil {
-		return err
-	}
-	clientSet, err := getClientSet(state)
+	clientSet, err := getClientSet(info)
 	if err != nil {
 		return err
 	}
