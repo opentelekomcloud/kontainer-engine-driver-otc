@@ -365,6 +365,14 @@ func (d *CCEDriver) GetDriverCreateOptions(context.Context) (*types.DriverFlags,
 				Usage:   "The share type of bandwidth",
 				Default: &types.Default{DefaultString: "PER"},
 			},
+			"app-port": {
+				Type:  types.IntType,
+				Usage: "Loadbalancer application port",
+			},
+			"app-protocol": {
+				Type:  types.StringType,
+				Usage: "Loadbalancer application protocol, on of 'HTTP', 'HTTPS' and 'TCP'",
+			},
 		},
 	}
 	return flags, nil
@@ -424,7 +432,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 		AppPort:      int(intOpt("app-port", "appPort")),
 		AppProtocol:  strOpt("app-protocol", "appProtocol"),
 		CreateLB:     boolOpt("create-load-balancer", "createLoadBalancer"),
-		LBFloatingIP: strOpt("lb-floating-ip", "lbFloatingIP"),
+		LBFloatingIP: strOpt("lb-floating-ip", "lbFloatingIp"),
 		LBEIPOptions: services.ElasticIPOpts{
 			IPType:        strOpt("lb-eip-type", "lbEipType"),
 			BandwidthSize: int(intOpt("lb-eip-bandwidth-size", "lbEipBandwidthSize")),
@@ -498,7 +506,7 @@ func stateToInfo(info *types.ClusterInfo, state clusterState) error {
 }
 
 func setupNetwork(client services.Client, state *clusterState) error {
-	logrus.Info("Setup network process started")
+	logrus.Debug("Setup network process started")
 	if state.VpcID == "" && state.VpcName != "" {
 		vpcID, err := client.FindVPC(state.VpcName)
 		if err != nil {
@@ -556,7 +564,7 @@ func setupNetwork(client services.Client, state *clusterState) error {
 		state.ManagedResources.LbEip = true
 		state.LBFloatingIP = eip.PublicAddress
 	}
-	logrus.Info("Setup network process finished")
+	logrus.Debug("Setup network process finished")
 	return nil
 }
 
@@ -603,6 +611,11 @@ func createLB(client services.Client, state *clusterState, nodeIPsChan chan []st
 		return err
 	}
 	loadBalancer.LB = lb.ID
+
+	err = client.BindFloatingIPToPort(state.LBFloatingIP, lb.VipPortID)
+	if err != nil {
+		return err
+	}
 
 	listener, err := client.CreateLBListener(&listeners.CreateOpts{
 		LoadbalancerID: lb.ID,
@@ -714,7 +727,7 @@ func getClient(state *clusterState) (client services.Client, err error) {
 }
 
 func cleanupManagedResources(client services.Client, state *clusterState) error {
-	logrus.Info("Cleanup process started")
+	logrus.Debug("Cleanup process started")
 	resources := state.ManagedResources
 
 	if err := cleanUpLB(client, state.LoadBalancer); err != nil {
@@ -754,13 +767,13 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 		}
 		resources.Vpc = false
 	}
-	logrus.Info("Cleanup process finished")
+	logrus.Debug("Cleanup process finished")
 	return nil
 }
 
 func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (clusterInfo *types.ClusterInfo, err error) {
 	logrus.Info("Start creating cluster")
-	logrus.Info("Get state from opts")
+	logrus.Debug("Get state from opts")
 	state, err := stateFromOpts(opts)
 	if err != nil {
 		return nil, err
@@ -859,7 +872,7 @@ func (d *CCEDriver) Update(ctx context.Context, info *types.ClusterInfo, updateO
 	return info, stateToInfo(info, *state)
 }
 
-func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
+func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
 	state, err := stateFromInfo(clusterInfo)
 	if err != nil {
 		return nil, err
@@ -886,26 +899,25 @@ func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInf
 		logrus.Debugf("cert info %s", string(jsonData))
 	}
 
-	internalServer := ""
 	for _, cluster := range cert.Clusters {
-		if cluster.Name == "internalCluster" {
-			internalServer = cluster.Cluster.Server
+		switch cluster.Name {
+		case "internalCluster":
 			clusterInfo.RootCaCertificate = cluster.Cluster.CertAuthorityData
+			break
+		case "externalCluster":
+			clusterInfo.Endpoint = cluster.Cluster.Server
+			break
 		}
 	}
 
-	if state.UseFloatingIP {
-		clusterInfo.Endpoint = fmt.Sprintf("https://%s:5443", state.ClusterFloatingIP)
-	} else {
-		clusterInfo.Endpoint = internalServer
-	}
+	state.Endpoint = clusterInfo.Endpoint
 
 	clusterInfo.Status = cluster.Status.Phase
 	clusterInfo.ClientKey = cert.Users[0].User.ClientKeyData
 	clusterInfo.ClientCertificate = cert.Users[0].User.ClientCertData
 	clusterInfo.Username = cert.Users[0].Name
 
-	clientSet, err := getClientSet(state)
+	clientSet, err := getClientSet(clusterInfo)
 	if err != nil {
 		return nil, fmt.Errorf("error creating clientset: %v", err)
 	}
@@ -913,7 +925,7 @@ func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInf
 	failureCount := 0
 
 	for {
-		clusterInfo.ServiceAccountToken, err = generateServiceAccountToken(ctx, clientSet)
+		clusterInfo.ServiceAccountToken, err = util.GenerateServiceAccountToken(clientSet)
 
 		if err == nil {
 			logrus.Info("service account token generated successfully")
@@ -1016,21 +1028,21 @@ func (d *CCEDriver) GetCapabilities(context.Context) (*types.Capabilities, error
 	return &d.driverCapabilities, nil
 }
 
-func getClientSet(state *clusterState) (clientSet *kubernetes.Clientset, err error) {
-	certBytes, err := base64.StdEncoding.DecodeString(state.ClientCertificate)
+func getClientSet(info *types.ClusterInfo) (clientSet *kubernetes.Clientset, err error) {
+	certBytes, err := base64.StdEncoding.DecodeString(info.ClientCertificate)
 	if err != nil {
 		return nil, err
 	}
-	keyBytes, err := base64.StdEncoding.DecodeString(state.ClientKey)
+	keyBytes, err := base64.StdEncoding.DecodeString(info.ClientKey)
 	if err != nil {
 		return nil, err
 	}
-	rootBytes, err := base64.StdEncoding.DecodeString(state.RootCaCertificate)
+	rootBytes, err := base64.StdEncoding.DecodeString(info.RootCaCertificate)
 	if err != nil {
 		return nil, err
 	}
 	config := &rest.Config{
-		Host: state.Endpoint,
+		Host: info.Endpoint,
 		TLSClientConfig: rest.TLSClientConfig{
 			CAData:   rootBytes,
 			CertData: certBytes,
@@ -1041,11 +1053,7 @@ func getClientSet(state *clusterState) (clientSet *kubernetes.Clientset, err err
 }
 
 func (d *CCEDriver) RemoveLegacyServiceAccount(_ context.Context, info *types.ClusterInfo) error {
-	state, err := stateFromInfo(info)
-	if err != nil {
-		return err
-	}
-	clientSet, err := getClientSet(state)
+	clientSet, err := getClientSet(info)
 	if err != nil {
 		return err
 	}
