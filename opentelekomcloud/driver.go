@@ -365,6 +365,14 @@ func (d *CCEDriver) GetDriverCreateOptions(context.Context) (*types.DriverFlags,
 				Usage:   "The share type of bandwidth",
 				Default: &types.Default{DefaultString: "PER"},
 			},
+			"app-port": {
+				Type:  types.IntType,
+				Usage: "Loadbalancer application port",
+			},
+			"app-protocol": {
+				Type:  types.StringType,
+				Usage: "Loadbalancer application protocol, on of 'HTTP', 'HTTPS' and 'TCP'",
+			},
 		},
 	}
 	return flags, nil
@@ -424,7 +432,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 		AppPort:      int(intOpt("app-port", "appPort")),
 		AppProtocol:  strOpt("app-protocol", "appProtocol"),
 		CreateLB:     boolOpt("create-load-balancer", "createLoadBalancer"),
-		LBFloatingIP: strOpt("lb-floating-ip", "lbFloatingIP"),
+		LBFloatingIP: strOpt("lb-floating-ip", "lbFloatingIp"),
 		LBEIPOptions: services.ElasticIPOpts{
 			IPType:        strOpt("lb-eip-type", "lbEipType"),
 			BandwidthSize: int(intOpt("lb-eip-bandwidth-size", "lbEipBandwidthSize")),
@@ -859,7 +867,7 @@ func (d *CCEDriver) Update(ctx context.Context, info *types.ClusterInfo, updateO
 	return info, stateToInfo(info, *state)
 }
 
-func (d *CCEDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
+func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
 	state, err := stateFromInfo(clusterInfo)
 	if err != nil {
 		return nil, err
