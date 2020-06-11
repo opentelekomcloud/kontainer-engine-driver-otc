@@ -548,7 +548,7 @@ func setupNetwork(client services.Client, state *clusterState) error {
 	}
 
 	if state.ClusterFloatingIP == "" {
-		eip, err := client.CreateEIP(&state.NodeConfig.EipOpts)
+		eip, err := client.CreateEIP(&state.ClusterEIPOptions)
 		if err != nil {
 			return err
 		}
@@ -557,7 +557,7 @@ func setupNetwork(client services.Client, state *clusterState) error {
 	}
 
 	if state.CreateLB && state.LBFloatingIP == "" {
-		eip, err := client.CreateEIP(&state.NodeConfig.EipOpts)
+		eip, err := client.CreateEIP(&state.LBEIPOptions)
 		if err != nil {
 			return err
 		}
