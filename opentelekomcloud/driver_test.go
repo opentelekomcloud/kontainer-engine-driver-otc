@@ -84,6 +84,17 @@ func getDriverOpts() *types.DriverOptions {
 	return &driverOptions
 }
 
+func GetNewIntOpts() map[string]int64 {
+	intOptions := map[string]int64{
+		"clusterEipBandwidthSize": 75,
+		"dataVolumeSize":          100,
+		"rootVolumeSize":          40,
+		"nodeCount":               2,
+		"appPort":                 8080,
+	}
+	return intOptions
+}
+
 func authClient(t *testing.T) services.Client {
 	client := services.NewClient(&clientconfig.ClientOpts{
 		AuthInfo: &clientconfig.AuthInfo{
@@ -126,6 +137,12 @@ func TestDriver_CreateCluster(t *testing.T) {
 	assert.NoError(t, err)
 
 	info, err = driver.PostCheck(ctx, info)
+	assert.NoError(t, err)
+
+	newDriverOptions := getDriverOpts()
+	newDriverOptions.IntOptions = GetNewIntOpts()
+
+	info, err = driver.Update(ctx, info, newDriverOptions)
 	assert.NoError(t, err)
 
 	err = driver.Remove(ctx, info)
