@@ -1007,7 +1007,7 @@ func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*clus
 	delta := newSize - state.NodeCount
 	logrus.Info("Start setting cluster size")
 	if delta == 0 {
-		return info, nil
+		return state, nil
 	}
 	if delta > 0 {
 		state.NodeConfig.ClusterID = state.ClusterID
@@ -1033,7 +1033,7 @@ func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*clus
 }
 
 func (d *CCEDriver) SetClusterSize(_ context.Context, info *types.ClusterInfo, count *types.NodeCount) error {
-	info, err := d.resizeCluster(info, count.Count)
+	_, err := d.resizeCluster(info, count.Count)
 	if err != nil {
 		return err
 	}
