@@ -2,6 +2,7 @@ package opentelekomcloud
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
 	"os"
 	"testing"
 
@@ -143,6 +144,12 @@ func TestDriver_ClusterWorkflow(t *testing.T) {
 	newDriverOptions := getDriverOpts()
 	newDriverOptions.IntOptions = GetNewIntOpts()
 
+	logrus.Info("Update cluster by adding 1 node")
+	info, err = driver.Update(ctx, info, newDriverOptions)
+	assert.NoError(t, err)
+
+	logrus.Info("Update cluster by decreasing 2 nodes")
+	newDriverOptions.IntOptions["nodeCount"] = defaultNodeCount - 1
 	info, err = driver.Update(ctx, info, newDriverOptions)
 	assert.NoError(t, err)
 
