@@ -87,11 +87,11 @@ func getDriverOpts() *types.DriverOptions {
 
 func GetNewIntOpts() map[string]int64 {
 	intOptions := map[string]int64{
-		"clusterEipBandwidthSize": 75,
+		"clusterEipBandwidthSize": 10,
 		"dataVolumeSize":          100,
 		"rootVolumeSize":          40,
-		"nodeCount":               2,
-		"appPort":                 8080,
+		"nodeCount":               defaultNodeCount + 1,
+		"appPort":                 80,
 	}
 	return intOptions
 }
@@ -142,9 +142,6 @@ func TestDriver_ClusterWorkflow(t *testing.T) {
 
 	newDriverOptions := getDriverOpts()
 	newDriverOptions.IntOptions = GetNewIntOpts()
-
-	assert.NoError(t, driver.SetClusterSize(ctx, info, &types.NodeCount{Count: defaultNodeCount - 1}))
-	assert.NoError(t, driver.SetClusterSize(ctx, info, &types.NodeCount{Count: defaultNodeCount + 1}))
 
 	info, err = driver.Update(ctx, info, newDriverOptions)
 	assert.NoError(t, err)
