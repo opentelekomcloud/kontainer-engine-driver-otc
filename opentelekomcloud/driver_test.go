@@ -15,6 +15,7 @@ import (
 const (
 	charset           = "0123456789abcdefghijklmnopqrstuvwxyz"
 	authFailedMessage = "failed to authorize client"
+	defaultNodeCount  = 2
 )
 
 var (
@@ -65,7 +66,7 @@ func getDriverOpts() *types.DriverOptions {
 		"clusterEipBandwidthSize": 10,
 		"dataVolumeSize":          100,
 		"rootVolumeSize":          40,
-		"nodeCount":               1,
+		"nodeCount":               defaultNodeCount,
 		"appPort":                 80,
 	}
 	stringSliceOptions := map[string]*types.StringSlice{
@@ -120,7 +121,7 @@ func computeClient(t *testing.T) services.Client {
 	return client
 }
 
-func TestDriver_CreateCluster(t *testing.T) {
+func TestDriver_ClusterWorkflow(t *testing.T) {
 	driverOptions := getDriverOpts()
 
 	ctx := context.Background()
@@ -134,13 +135,16 @@ func TestDriver_CreateCluster(t *testing.T) {
 
 	driver := NewDriver()
 	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	info, err = driver.PostCheck(ctx, info)
 	assert.NoError(t, err)
 
 	newDriverOptions := getDriverOpts()
 	newDriverOptions.IntOptions = GetNewIntOpts()
+
+	assert.NoError(t, driver.SetClusterSize(ctx, info, &types.NodeCount{Count: defaultNodeCount - 1}))
+	assert.NoError(t, driver.SetClusterSize(ctx, info, &types.NodeCount{Count: defaultNodeCount + 1}))
 
 	info, err = driver.Update(ctx, info, newDriverOptions)
 	assert.NoError(t, err)

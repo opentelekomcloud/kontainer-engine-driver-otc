@@ -596,6 +596,7 @@ func cleanUpLB(client services.Client, lb loadBalancer) error {
 }
 
 func createLB(client services.Client, state *clusterState, nodeIPsChan chan []string, lbChan chan loadBalancer) error {
+	logrus.Info("LB creation started")
 	loadBalancer := loadBalancer{}
 	defer func() { lbChan <- loadBalancer }()
 	subnet, err := client.GetSubnetStatus(state.SubnetID)
@@ -650,6 +651,7 @@ func createLB(client services.Client, state *clusterState, nodeIPsChan chan []st
 		}
 		loadBalancer.Members = append(loadBalancer.Members, mem.ID)
 	}
+	logrus.Info("LB created")
 	return nil
 }
 
@@ -793,8 +795,8 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 	state.ManagedResources = managedResources{}
 	defer func() {
 		if err != nil {
-			logrus.Error(err)
-			logrus.WithError(cleanupManagedResources(client, state)).Info("creation failed")
+			logrus.WithError(err).Info("creation failed")
+			logrus.WithError(cleanupManagedResources(client, state))
 		}
 	}()
 
@@ -849,8 +851,7 @@ func (d *CCEDriver) Update(ctx context.Context, info *types.ClusterInfo, updateO
 	newState.ClusterID = state.ClusterID
 
 	if newState.NodeCount != state.NodeCount {
-		nc := &types.NodeCount{Count: newState.NodeCount}
-		if err := d.SetClusterSize(ctx, info, nc); err != nil {
+		if err := d.resizeCluster(info, newState.NodeCount); err != nil {
 			return nil, err
 		}
 	}
@@ -991,7 +992,7 @@ func (d *CCEDriver) GetClusterSize(_ context.Context, info *types.ClusterInfo) (
 	return &types.NodeCount{Count: state.NodeCount}, nil
 }
 
-func (d *CCEDriver) SetClusterSize(_ context.Context, info *types.ClusterInfo, count *types.NodeCount) error {
+func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) error {
 	state, err := stateFromInfo(info)
 	if err != nil {
 		return err
@@ -1000,28 +1001,36 @@ func (d *CCEDriver) SetClusterSize(_ context.Context, info *types.ClusterInfo, c
 	if err != nil {
 		return err
 	}
-	delta := int(count.Count - state.NodeCount)
+	delta := newSize - state.NodeCount
 	logrus.Info("Start setting cluster size")
 	if delta == 0 {
 		return nil
 	}
 	if delta > 0 {
-		newNodes, err := client.CreateNodes(&state.NodeConfig, delta)
+		state.NodeConfig.ClusterID = state.ClusterID
+		newNodes, err := client.CreateNodes(&state.NodeConfig, int(delta))
 		if err != nil {
 			return err
 		}
 		state.NodeIDs = append(state.NodeIDs, newNodes...)
 	} else {
-		nodesToDelete := state.NodeIDs[count.Count:]
+		nodesToDelete := state.NodeIDs[newSize:]
 		err := client.DeleteNodes(state.ClusterID, nodesToDelete)
 		if err != nil {
 			return err
 		}
-		state.NodeIDs = state.NodeIDs[:count.Count]
+		state.NodeIDs = state.NodeIDs[:newSize]
 	}
-	state.NodeCount = int64(len(state.NodeIDs))
-	logrus.Info("Setting cluster size finished")
+	if len(state.NodeIDs) != int(newSize) {
+		return fmt.Errorf("resize failed: expected %v items in %v", newSize, state.NodeIDs)
+	}
+	state.NodeCount = newSize
+	logrus.Infof("Setting cluster size to %v finished", newSize)
 	return stateToInfo(info, *state)
+}
+
+func (d *CCEDriver) SetClusterSize(_ context.Context, info *types.ClusterInfo, count *types.NodeCount) error {
+	return d.resizeCluster(info, count.Count)
 }
 
 func (d *CCEDriver) GetCapabilities(context.Context) (*types.Capabilities, error) {
