@@ -2,6 +2,7 @@ package opentelekomcloud
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
 	"os"
 	"testing"
 
@@ -15,6 +16,7 @@ import (
 const (
 	charset           = "0123456789abcdefghijklmnopqrstuvwxyz"
 	authFailedMessage = "failed to authorize client"
+	defaultNodeCount  = 2
 )
 
 var (
@@ -65,7 +67,7 @@ func getDriverOpts() *types.DriverOptions {
 		"clusterEipBandwidthSize": 10,
 		"dataVolumeSize":          100,
 		"rootVolumeSize":          40,
-		"nodeCount":               1,
+		"nodeCount":               defaultNodeCount,
 		"appPort":                 80,
 	}
 	stringSliceOptions := map[string]*types.StringSlice{
@@ -82,6 +84,17 @@ func getDriverOpts() *types.DriverOptions {
 	}
 
 	return &driverOptions
+}
+
+func GetNewIntOpts() map[string]int64 {
+	intOptions := map[string]int64{
+		"clusterEipBandwidthSize": 10,
+		"dataVolumeSize":          100,
+		"rootVolumeSize":          40,
+		"nodeCount":               defaultNodeCount + 1,
+		"appPort":                 80,
+	}
+	return intOptions
 }
 
 func authClient(t *testing.T) services.Client {
@@ -109,7 +122,7 @@ func computeClient(t *testing.T) services.Client {
 	return client
 }
 
-func TestDriver_CreateCluster(t *testing.T) {
+func TestDriver_ClusterWorkflow(t *testing.T) {
 	driverOptions := getDriverOpts()
 
 	ctx := context.Background()
@@ -123,9 +136,21 @@ func TestDriver_CreateCluster(t *testing.T) {
 
 	driver := NewDriver()
 	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	info, err = driver.PostCheck(ctx, info)
+	assert.NoError(t, err)
+
+	newDriverOptions := getDriverOpts()
+	newDriverOptions.IntOptions = GetNewIntOpts()
+
+	logrus.Info("Update cluster by adding 1 node")
+	info, err = driver.Update(ctx, info, newDriverOptions)
+	assert.NoError(t, err)
+
+	logrus.Info("Update cluster by decreasing 2 nodes")
+	newDriverOptions.IntOptions["nodeCount"] = defaultNodeCount - 1
+	info, err = driver.Update(ctx, info, newDriverOptions)
 	assert.NoError(t, err)
 
 	err = driver.Remove(ctx, info)
