@@ -851,15 +851,11 @@ func (d *CCEDriver) Update(_ context.Context, info *types.ClusterInfo, updateOpt
 	newState.ClusterID = state.ClusterID
 
 	if newState.NodeCount != state.NodeCount {
-		info, err := d.resizeCluster(info, newState.NodeCount)
+		tmpState, err := d.resizeCluster(info, newState.NodeCount)
 		if err != nil {
 			return nil, err
 		}
-		tmp, err := stateFromInfo(info)
-		if err != nil {
-			return nil, err
-		}
-		state.NodeIDs = tmp.NodeIDs
+		state.NodeIDs = tmpState.NodeIDs
 	}
 
 	if newState.Description != state.Description {
@@ -999,7 +995,7 @@ func (d *CCEDriver) GetClusterSize(_ context.Context, info *types.ClusterInfo) (
 	return &types.NodeCount{Count: state.NodeCount}, nil
 }
 
-func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*types.ClusterInfo, error) {
+func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*clusterState, error) {
 	state, err := stateFromInfo(info)
 	if err != nil {
 		return nil, err
@@ -1033,7 +1029,7 @@ func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*type
 	}
 	state.NodeCount = newSize
 	logrus.Infof("Setting cluster size to %v finished", newSize)
-	return info, stateToInfo(info, *state)
+	return state, nil
 }
 
 func (d *CCEDriver) SetClusterSize(_ context.Context, info *types.ClusterInfo, count *types.NodeCount) error {
