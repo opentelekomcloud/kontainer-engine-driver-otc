@@ -3,7 +3,7 @@ export PATH:=/usr/local/go/bin:$(PATH)
 exec_path := /usr/local/bin/
 exec_name := kontainer-engine-driver-otc
 
-VERSION := 0.1.0
+VERSION := 0.1.1
 
 
 default: test build
