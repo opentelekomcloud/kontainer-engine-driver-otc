@@ -23,4 +23,4 @@ release and can be downloaded from one of those URLs directly.
 3. Enter the Custom UI URL with value `https://csm-assets.obs.eu-de.otc.t-systems.com/ui/component.js`.
 4. Add Whitelist Domains with value `*.otc.t-systems.com`.
 5. Click `Create`, and wait for driver status to be `Active`.
-6. OTC CCEDriver will be available to use on the `Add Cluster` screen.
+6. Cluster driver for OpenTelekomCloud CCE service will be available to use on the `Add Cluster` screen.
