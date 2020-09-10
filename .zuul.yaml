@@ -3,12 +3,11 @@
     merge-mode: squash-merge
     check:
       jobs:
-        - golang-make-test
         - golang-make-vet
         - goreleaser-build
     gate:
       jobs:
-        - golang-make-test
+        - golang-make-functional
         - golang-make-vet
         - goreleaser-build
     tag:
