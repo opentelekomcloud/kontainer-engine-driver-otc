@@ -34,8 +34,8 @@ const (
 var (
 	authURL         = fmt.Sprintf("https://iam.eu-de.%s/v3", baseServiceURL)
 	clusterVersions = []string{
+		"v1.15.6-r1",
 		"v1.13.10-r0",
-		"v1.11.7-r2",
 	}
 	clusterFlavors = []string{
 		"cce.s1.small",
