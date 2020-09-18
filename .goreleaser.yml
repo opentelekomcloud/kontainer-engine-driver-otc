@@ -1,6 +1,6 @@
 # Visit https://goreleaser.com for documentation on how to customize this
 # behavior.
-project_name: otccce
+project_name: kontainer-engine-driver-otccce
 before:
   hooks:
     # this is just an example and not a requirement for provider building/publishing
@@ -20,7 +20,7 @@ builds:
       - linux
     goarch:
       - amd64
-    binary: 'kontainer-engine-driver-{{ .ProjectName }}'
+    binary: '{{ .ProjectName }}'
 archives:
   - format: tar.gz
     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
