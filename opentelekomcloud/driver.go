@@ -8,13 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/openstack/cce/v3/clusters"
 	"github.com/huaweicloud/golangsdk/openstack/cce/v3/nodes"
-	"github.com/huaweicloud/golangsdk/openstack/networking/v2/extensions/lbaas_v2/listeners"
-	"github.com/huaweicloud/golangsdk/openstack/networking/v2/extensions/lbaas_v2/loadbalancers"
-	"github.com/huaweicloud/golangsdk/openstack/networking/v2/extensions/lbaas_v2/pools"
 	"github.com/opentelekomcloud-infra/crutch-house/clientconfig"
 	"github.com/opentelekomcloud-infra/crutch-house/services"
 	"github.com/rancher/kontainer-engine/drivers/util"
@@ -28,7 +24,6 @@ const (
 	retries        = 5
 	pollInterval   = 30
 	baseServiceURL = "otc.t-systems.com"
-	driverName     = "OpenTelekomCloud CCE"
 )
 
 var (
@@ -59,24 +54,12 @@ type managedResources struct {
 	Cluster    bool
 	Nodes      bool
 	ClusterEip bool
-	LbEip      bool
-}
-
-// Load balancer is always managed
-type loadBalancer struct {
-	LB       string   `json:"lb,omitempty"`
-	Listener string   `json:"listener,omitempty"`
-	Pool     string   `json:"pool,omitempty"`
-	Members  []string `json:"members,omitempty"`
 }
 
 type clusterState struct {
 	types.ClusterInfo
 	ClusterID             string
 	AuthInfo              clientconfig.AuthInfo
-	AppProtocol           string
-	AppPort               int
-	LBMethod              string
 	ClusterName           string
 	DisplayName           string
 	Description           string
@@ -98,15 +81,10 @@ type clusterState struct {
 	UseFloatingIP         bool
 	ClusterFloatingIP     string
 	ClusterEIPOptions     services.ElasticIPOpts
-	CreateLB              bool
-	LBFloatingIP          string
-	LBEIPOptions          services.ElasticIPOpts
-	LoadBalancer          loadBalancer
 	ClusterJobID          string
 	NodeConfig            services.CreateNodesOpts
 	NodeIDs               []string
 	AuthMode              string
-	APIServerELBID        string
 	ManagedResources      managedResources
 }
 
@@ -338,40 +316,11 @@ func (d *CCEDriver) GetDriverCreateOptions(context.Context) (*types.DriverFlags,
 				Usage:   "The share type of bandwidth",
 				Default: &types.Default{DefaultString: "PER"},
 			},
-			// lb bandwidth
-			"create-load-balancer": {
-				Type:  types.BoolType,
-				Usage: "If not set, no LB will be created",
-				Default: &types.Default{
-					DefaultBool: true,
-				},
-			},
-			"lb-floating-ip": {
-				Type:  types.StringType,
-				Usage: "Existing floating IP to be associated with load balancer",
-			},
-			"lb-eip-type": {
+			// lb
+			"load-balancer": {
 				Type:    types.StringType,
-				Usage:   "The type of bandwidth",
-				Default: &types.Default{DefaultString: "5_bgp"},
-			},
-			"lb-eip-bandwidth-size": {
-				Type:    types.IntType,
-				Usage:   "The size of bandwidth, MBit",
-				Default: &types.Default{DefaultInt: 100},
-			},
-			"lb-eip-share-type": {
-				Type:    types.StringType,
-				Usage:   "The share type of bandwidth",
-				Default: &types.Default{DefaultString: "PER"},
-			},
-			"app-port": {
-				Type:  types.IntType,
-				Usage: "Loadbalancer application port",
-			},
-			"app-protocol": {
-				Type:  types.StringType,
-				Usage: "Loadbalancer application protocol, on of 'HTTP', 'HTTPS' and 'TCP'",
+				Usage:   "Existing LB ID",
+				Default: &types.Default{DefaultString: ""},
 			},
 		},
 	}
@@ -428,15 +377,6 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 			IPType:        strOpt("cluster-eip-type", "clusterEipType"),
 			BandwidthSize: int(intOpt("cluster-eip-bandwidth-size", "clusterEipBandwidthSize")),
 			BandwidthType: strOpt("cluster-eip-share-type", "clusterEipShareType"),
-		},
-		AppPort:      int(intOpt("app-port", "appPort")),
-		AppProtocol:  strOpt("app-protocol", "appProtocol"),
-		CreateLB:     boolOpt("create-load-balancer", "createLoadBalancer"),
-		LBFloatingIP: strOpt("lb-floating-ip", "lbFloatingIp"),
-		LBEIPOptions: services.ElasticIPOpts{
-			IPType:        strOpt("lb-eip-type", "lbEipType"),
-			BandwidthSize: int(intOpt("lb-eip-bandwidth-size", "lbEipBandwidthSize")),
-			BandwidthType: strOpt("lb-eip-share-type", "lbEipShareType"),
 		},
 
 		NodeConfig: services.CreateNodesOpts{
@@ -556,115 +496,14 @@ func setupNetwork(client services.Client, state *clusterState) error {
 		state.ClusterFloatingIP = eip.PublicAddress
 	}
 
-	if state.CreateLB && state.LBFloatingIP == "" {
-		eip, err := client.CreateEIP(&state.LBEIPOptions)
-		if err != nil {
-			return err
-		}
-		state.ManagedResources.LbEip = true
-		state.LBFloatingIP = eip.PublicAddress
-	}
 	logrus.Debug("Setup network process finished")
 	return nil
 }
 
-func cleanUpLB(client services.Client, lb loadBalancer) error {
-	for _, member := range lb.Members {
-		if member == "" {
-			continue
-		}
-		if err := client.DeleteLBMember(lb.Pool, member); err != nil {
-			return err
-		}
-	}
-	if lb.Pool != "" {
-		if err := client.DeleteLBPool(lb.Pool); err != nil {
-			return err
-		}
-	}
-	if lb.Listener != "" {
-		if err := client.DeleteLBListener(lb.Listener); err != nil {
-			return err
-		}
-	}
-	if lb.LB != "" {
-		if err := client.DeleteLoadBalancer(lb.LB); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func createLB(client services.Client, state *clusterState, nodeIPsChan chan []string, lbChan chan loadBalancer) error {
-	logrus.Info("LB creation started")
-	loadBalancer := loadBalancer{}
-	defer func() { lbChan <- loadBalancer }()
-	subnet, err := client.GetSubnetStatus(state.SubnetID)
-	if err != nil {
-		return err
-	}
-
-	lb, err := client.CreateLoadBalancer(&loadbalancers.CreateOpts{
-		Description: "CCE cluster",
-		VipSubnetID: subnet.SubnetId,
-	})
-	if err != nil {
-		return err
-	}
-	loadBalancer.LB = lb.ID
-
-	err = client.BindFloatingIPToPort(state.LBFloatingIP, lb.VipPortID)
-	if err != nil {
-		return err
-	}
-
-	listener, err := client.CreateLBListener(&listeners.CreateOpts{
-		LoadbalancerID: lb.ID,
-		Protocol:       listeners.Protocol(state.AppProtocol),
-		ProtocolPort:   state.AppPort,
-		Description:    "CCE LB listener",
-	})
-	if err != nil {
-		return err
-	}
-	loadBalancer.Listener = listener.ID
-
-	pool, err := client.CreateLBPool(&pools.CreateOpts{
-		LBMethod:   pools.LBMethodLeastConnections, // FIXME: "LEAST_CONNECTIONS" is hardcoded
-		Protocol:   pools.Protocol(state.AppProtocol),
-		ListenerID: listener.ID,
-	})
-	if err != nil {
-		return err
-	}
-	loadBalancer.Pool = pool.ID
-
-	ips := <-nodeIPsChan // wait for nodes to be created
-	for _, ip := range ips {
-		mem, err := client.CreateLBMember(pool.ID, &pools.CreateMemberOpts{
-			Address:      ip,
-			ProtocolPort: state.AppPort,
-			SubnetID:     subnet.SubnetId,
-		})
-		if err != nil {
-			return err
-		}
-		loadBalancer.Members = append(loadBalancer.Members, mem.ID)
-	}
-	logrus.Info("LB created")
-	return nil
-}
-
-func createCluster(client services.Client, state clusterState, nodeIPsChan chan []string, clusterIDChan chan string, nodeIDsChan chan []string) error {
+func createCluster(client services.Client, state *clusterState) error {
 	var nodeIPs []string
 	var nodeIDs []string
 	var clusterID string
-	defer func() {
-		// we shouldn't write to another goroutine objects directly
-		clusterIDChan <- clusterID
-		nodeIDsChan <- nodeIDs
-		nodeIPsChan <- nodeIPs
-	}()
 	cluster, err := client.CreateCluster(&services.CreateClusterOpts{
 		Name:            state.ClusterName,
 		Description:     state.Description,
@@ -732,9 +571,6 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 	logrus.Debug("Cleanup process started")
 	resources := state.ManagedResources
 
-	if err := cleanUpLB(client, state.LoadBalancer); err != nil {
-		return err
-	}
 	if resources.Nodes {
 		resources.Nodes = false
 	}
@@ -746,12 +582,6 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 			return err
 		}
 		resources.ClusterEip = false
-	}
-	if resources.LbEip {
-		if err := client.DeleteFloatingIP(state.LBFloatingIP); err != nil {
-			return err
-		}
-		resources.LbEip = false
 	}
 	if resources.Subnet {
 		if err := client.DeleteSubnet(state.VpcID, state.SubnetID); err != nil {
@@ -801,31 +631,13 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 	}()
 
 	if err := setupNetwork(client, state); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to setup network")
 	}
 
-	errChan := make(chan error, 2)
-	lbChan := make(chan loadBalancer, 1)
-	nodeIPsChan := make(chan []string, 1)
-	nodeIDsChan := make(chan []string, 1)
-	clusterIDChan := make(chan string, 1)
-	go func() {
-		errChan <- createCluster(client, *state, nodeIPsChan, clusterIDChan, nodeIDsChan)
-	}()
-
-	if state.CreateLB {
-		go func() { errChan <- createLB(client, state, nodeIPsChan, lbChan) }()
-		state.LoadBalancer = <-lbChan
-	} else {
-		errChan <- nil
+	if err := createCluster(client, state); err != nil {
+		return nil, fmt.Errorf("failed to create cluster: %s", err)
 	}
-	state.ClusterID = <-clusterIDChan
-	state.NodeIDs = <-nodeIDsChan
 
-	err = multierror.Append(nil, <-errChan, <-errChan).ErrorOrNil()
-	if err != nil {
-		return nil, err
-	}
 	logrus.Info("Cluster creation finished")
 	return info, stateToInfo(info, *state)
 }
