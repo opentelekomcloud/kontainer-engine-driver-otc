@@ -28,10 +28,6 @@ var (
 )
 
 func getDriverOpts() *types.DriverOptions {
-	boolOptions := map[string]bool{
-		"createLoadBalancer": true,
-	}
-
 	stringOptions := map[string]string{
 		"accessKey":            os.Getenv("accessKey"),
 		"authenticationMode":   "rbac",
@@ -48,8 +44,6 @@ func getDriverOpts() *types.DriverOptions {
 		"domainName":           os.Getenv("domainName"),
 		"driverName":           kontainerDriverName,
 		"keyPair":              kpName,
-		"lbEipShareType":       "PER",
-		"lbEipType":            "5_bgp",
 		"name":                 name,
 		"nodeFlavor":           "s2.large.2",
 		"nodeOs":               "EulerOS 2.5",
@@ -77,7 +71,6 @@ func getDriverOpts() *types.DriverOptions {
 	}
 
 	driverOptions := types.DriverOptions{
-		BoolOptions:        boolOptions,
 		StringOptions:      stringOptions,
 		IntOptions:         intOptions,
 		StringSliceOptions: stringSliceOptions,
