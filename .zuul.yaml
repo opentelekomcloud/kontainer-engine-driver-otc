@@ -34,6 +34,7 @@
     pre-run: playbooks/pre.yaml
     run: playbooks/run.yaml
     vars:
+      rancher_image: rancher/rancher:v2.4.8
       # secrets:
       # - rancher_credentials
     nodeset:
