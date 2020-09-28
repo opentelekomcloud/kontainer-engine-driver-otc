@@ -1,7 +1,17 @@
 ---
 - hosts: all
+  tasks:
+    - name: Install binary dependencies
+        include_role:
+          name: bindep
+        vars:
+          bindep_dir: "{{ zuul_work_dir }}"
+        when: tox_install_bindep | default(true)
+
+- hosts: all
   roles:
     - ensure-python
     - ensure-pip
     - ensure-docker
     - prepare-rancher-env 
+
