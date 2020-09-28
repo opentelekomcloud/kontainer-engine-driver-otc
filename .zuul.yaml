@@ -1,19 +1,90 @@
 ---
 - project:
     merge-mode: squash-merge
+    templates:
+      - rancher-kontainer-integration
     vars:
-      functest_project_name: "eu-de_zuul_go"
+      functest_project_name: "eu-de_zuul_rancher"
+        #    check:
+        #      jobs:
+        #        - golangci-lint
+        #        - golang-make-functional
+        #        - golang-make-vet
+        #        - goreleaser-build
+        #    gate:
+        #      jobs:
+        #        - golangci-lint
+        #        - golang-make-vet
+        #        - golang-make-functional
+        #        - goreleaser-build
+        #    tag:
+        #      jobs:
+        #        - release-goreleaser
+
+- project-template:
+    name: rancher-kontainer-integration
     check:
       jobs:
-        - golangci-lint
-        - golang-make-vet
-        - goreleaser-build
-    gate:
-      jobs:
-        - golangci-lint
-        - golang-make-vet
-        - golang-make-functional
-        - goreleaser-build
-    tag:
-      jobs:
-        - release-goreleaser
+        - rancher-funct
+
+- job:
+    name: rancher-funct
+    description: |
+      Run Functional tests of the driver on Rancher+OTC.
+    pre-run: playbooks/pre.yaml
+    run: playbooks/run.yaml
+    vars:
+      # secrets:
+      # - rancher_credentials
+    nodeset:
+      nodes:
+        - name: rancher
+          label: debian-buster
+
+- secret:
+    name: rancher_credentials
+    data:
+      user_name: !encrypted/pkcs1-oaep
+        - XmF//QEkTSvQjIClGYIDdEt9u0Li+7uCNSwZuLmTrbR0USd7EB4LZXu6IEF57Qv9tFg5t
+          BIx/Bqos8V+mK4BTuBbVWOshdkje3/kc2Bycdm6xDkduwZoQcLFal9BvIVTnhL7QeQOvJ
+          B+/A39eqkE3ZjaWT9iqQ2mPGsg2c0B+MI5ZfoQGGJCqLpMd6QCRa7o778cQa+PPI57OAY
+          1vZlhXLtjZe45fmQSm6uZAkfQwFd2AOdhMz7LJYpX+yRMzBtUTVs9g/3L2zIFbHVAPFUs
+          8K0cAK0mP6M8rjNn3gVAU+bhXPWvG0KNks0wUCXcgwP46RpWiACE80xzmbBXdFQIvYfQa
+          Bl0O9vTBnFbAHBSgpICT/4dVdBOEKq9tdqsMCfZcoaJCUvy7FFXSMtvipgULY9kxQ/7y1
+          DMgZnLesGCOHlMK9+l8FjuX9y+UZA+N7NejnWo3FZ9/0a536ah3JGBp6PFtSfKB+kyaXz
+          bF5FCcZTtcCgAWJke91YA3RW5PJPLvvVI9i65hoQ5tS0ONX75r63cVN8URApziQtuqPI0
+          Ngw6IQ/SRO3hZCEGO/1sdvDcH/mozSSpYQ0YPtqQVwilTgG5jZgj1ONrLmgYbM9Vncd8J
+          AfQBE7laVfArdzqRSp+jZ2Ss+Wmbm5EfG2ioCfOI7xLV5MRFPoMajRJc9deRgg=
+      password: !encrypted/pkcs1-oaep
+        - mQ06zMvG3XrrG+Zstqor303HyOkBKyl6kwOl4jkySgEMFSPPXHiX9B0PmO9FyKcXl/uAp
+          wRPqcXhqdNIdzy9eAeiCfcT5Vj5goezCjSZxrRrrTVk4pzFNr3h+0aZ9WPJlr3oDdztIy
+          R5/cKeMtvq9puWtvXOdWZAkFHcP9Ohf9khF9VU7gRLrWdV1rQ9orn++4AK1hmJYXNXVHQ
+          Tm3AuCzQknyBlUkJ2TOvwCocc5o4WZ6H8kcuKmnkxkIf6yd9Eigj029VnT2u/l9klct5s
+          tTHrWlEJZ/38qVzNPaF4hcxQobUpMSuS4xHXXlGnb+6WXTEheKVzvBsfrGY5w/WlGJAlf
+          MEnt3OTfHRN8aGH51PkBHIebipQVT/3B+s25S+C93NTSm6Kk6MQZ/SAaFcOJxwzsvC15j
+          ygT9DlYjY7zLcJsbmSHX5aqMUHdupGrmRVIgX1o207Ywwt1L6G9Sh4vLvB8E/QimRlISm
+          uf4s9fpasX5Nmz7RpBLVI1zET0ew8vFIwh+954VntMWLbyhOtzhRp4novB8IJz02wSaVK
+          jUoMnJWQQkmWy1HEf5ZPgaI+eMj74VpJ4pC+ZBV9oP7blVbK8vF4fB4zdidoBzCkJKXTs
+          DeRYIybv0TQcqpe4yBBQbrV4JBCav9cooXZvNupOgHqVPjuZ48nazEGBk9RrWA=
+      project_name: !encrypted/pkcs1-oaep
+        - W1zxF68k1DC2M1hZxABN4S64RlDs2uh67GmgpVCEbWCt8rXmA/Mx4fSWb+ue/2OvOAIn4
+          ixRB7Dvl718La1eZXBwQLKxQeX+qc7SDwBEyhlGAS7UrRrPFpeFJNoWBiwnJxhCHMgaxY
+          EhNYf3owdqD9c2i1Aoj4d+gcGCdpPKB2jqGwTTGppkSb6TnRTmkSIAwm1kdGyZnCLkzn5
+          4bIj8bkuRQx4PZjJkicl4w7Kkil3Bizuar7C7Xkf0jjYB0K93h9UQQMtfpWf359yzRAxB
+          dRX2b4kY+c5Fg1yDtL6mzlZzZfPDCGMmyr070VMB9JQI2E5SUgE64IDL57G0A4Xm3pbrB
+          vCVgkPNAY9dLx5Y8MsJO8K/wRk2a81con6FsHFdaEC4km/D6kaRfRKv1Sst6DW4AYdA14
+          xkCx/YGmt7w4mWKEiqxaS4378TL0r88Uj9amobW7NlOSp/a/W+/QNYW/kBfUsh2+MXPWm
+          f32C/xd76saswQMbz+Zn+Cgh5Y4DqAkjFgdGdIbocX7FJgnyFXzJYpuiIL9IvAmubtL0b
+          VAARkggnUWTC9pT9NC0g4iNQs8g10g/idH5uPf6w6WPv8kUDOYnhVaqUvpDtLU0rtnK7a
+          JAszURLVSVhBkKSdVMrRXmu1nXH95Epm3W1Szb/ynONHmHWRJ4VLZTAA+BdICY=
+      domain_name: !encrypted/pkcs1-oaep
+        - M/SVuVInCBg5zhpP0zx2UIfOKbQ6HXTr/8QF5JEtLIDEqUSYVhloP2oSxM8Zn+JqLarVg
+          82IugRtjEL+UT9SzYCsaUi/qWcU18t8d7V1lkkZAJnTLhkkTkLF/hSDrLO2iG9YmyhW7K
+          eJMtWmRLcSd6iwcZ0PpnuXt0y7BW8urw8dzjfdWcYfHFRQMnpAVcq0vOGDBos8HezEG6F
+          BEkepzq/mQzw3Eqc19x1XSXlGPIvZpqMd6vRrx2xCYdpssuirkwJiMkdpPJVTKcfyp2in
+          0iaapHpGMHnD7sfksI8syOXszc1YxyoSvsUASOtx/+76hr1sU1gHQ9zfEGyoSI9ZCNuey
+          RuLra0cIitiN6guycNXNjQJEcscjQ//R9sIztrfq+/Ex9d5D9Pwo1VY31f1nISDQi1xcf
+          D2Hh2HsS6hehwinP6/3V1UycydLRlVQGpXzbXe/zjAwahy0C0FJf5Rff8m+wQZNjDGmGg
+          3wNvL2lRSjlYhHjFC6wlR8wyUvPb3OovMM4weLBLd93+WWUcVJRI1fCmWujSVv9Rbgrp1
+          CviMJVRFeVZrkw+ebsee0BYlrzaaMCu0/araderwBJLGSPj36C3KiuTzr7Rq8cJvdcWuj
+          Y/PMENLL6JMTPR9HqJ8ZDXQFnTEPBz60q7hsPpqPHDZYs1MqtIOHbZPILrGEsI=

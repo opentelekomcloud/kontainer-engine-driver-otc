@@ -1,0 +1,4 @@
+---
+# defaults file for rancher-run-tests
+
+rancher_pip_virtualenv: "{{ ansible_user_dir }}/.local/venv"

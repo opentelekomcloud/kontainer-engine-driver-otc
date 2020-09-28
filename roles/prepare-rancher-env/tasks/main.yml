@@ -1,0 +1,108 @@
+---
+# tasks file for prepare-rancher-env
+- name: Install required pip packages
+  pip:
+    virtualenv: "{{ rancher_pip_virtualenv|default(omit) }}"
+    state: present
+    name: "{{ packages }}"
+
+- name: Pull rancher image
+  docker_image:
+    name: "{{ rancher_image }}"
+    source: pull
+
+- name: Start  Rancher container
+  docker_container:
+    name: rancher
+    image: "{{ rancher_image }}"
+    published_ports:
+      - 0.0.0.0:443:443
+      - 0.0.0.0:8080:8080
+    restart_policy: unless-stopped
+    detach: yes
+
+- name: Pull selenium CHROME image
+  docker_image:
+    name: "{{ selenium_chrome_image }}"
+    source: pull
+
+- name: Start Selenium CHROME container
+  docker_container:
+    name: selenium-chrome
+    image: "{{ selenium_chrome_image }}"
+    published_ports:
+      - 0.0.0.0:4444:4444
+    restart_policy: unless-stopped
+    detach: yes
+
+- name: Get default rancher login token
+  uri:
+    url: 'https://{{ ansible_default_ipv4.address }}/v3-public/localProviders/local?action=login'
+    method: POST
+    body: {"username":"admin", "password":"admin"}
+    status_code: 201
+    body_format: json
+    validate_certs: False
+  register: login_result
+  until: login_result.status == 201
+  retries: 10
+  delay: 10
+  failed_when: login_result.status not in [201]
+  ignore_errors: true
+
+- name: Set rancher URL
+  uri:
+    url: 'https://{{ ansible_default_ipv4.address }}/v3/settings/server-url'
+    method: PUT
+    body: {"name":"server-url","value":"https://{{ ansible_default_ipv4.address }}"}
+    headers:
+      Authorization: "Bearer {{ login_result.json.token }}"
+    status_code: 200
+    body_format: json
+    validate_certs: False
+  register: url_result
+  until: url_result.status == 200
+  retries: 3
+  delay: 10
+  failed_when: url_result.status not in [200]
+  ignore_errors: true
+
+- name: Set rancher password
+  uri:
+    url: 'https://{{ ansible_default_ipv4.address }}/v3/users?action=changepassword'
+    method: POST
+    body: {"currentPassword":"admin","newPassword":"{{ rancher_password }}"}
+    headers:
+      Authorization: "Bearer {{ login_result.json.token }}"
+    status_code: 200
+    body_format: json
+    validate_certs: False
+  register: password_result
+  until: password_result.status == 200
+  retries: 3
+  delay: 10
+  failed_when: password_result.status not in [200]
+  ignore_errors: true
+
+- name: Create test directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - ~/driver
+    - ~/tests
+
+- name: Copy Driver add test case to Filesystem
+  template:
+    src: "test_addclusterdriver.py"
+    dest: "~/driver/test_addclusterdriver.py"
+
+- name: Copy Test cases to Filesystem
+  template:
+    src: "{{ item.src }}"
+    dest: "~/tests/{{ item.path }}"
+  with_filetree: ../templates
+  when: item.state == 'file' and item.path != "test_addclusterdriver.py"
+
+- name: Add Cluster driver to rancher
+  command: "{{ rancher_pip_virtualenv }}/bin/py.test -s -v ~/driver/test_addclusterdriver.py"
