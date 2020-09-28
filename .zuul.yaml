@@ -40,7 +40,7 @@
     nodeset:
       nodes:
         - name: rancher
-          label: debian-buster
+          label: ubuntu-bionic
 
 - secret:
     name: rancher_credentials
