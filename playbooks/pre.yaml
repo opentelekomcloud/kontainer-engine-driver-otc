@@ -11,6 +11,7 @@
 - hosts: all
   roles:
     - ensure-python
+    - ensure-virtualenv
     - ensure-pip
     - ensure-docker
     - prepare-rancher-env 
