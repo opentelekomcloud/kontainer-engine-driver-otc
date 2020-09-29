@@ -104,4 +104,4 @@
   when: item.state == 'file' and item.path != "test_addclusterdriver.py"
 
 - name: Add Cluster driver to rancher
-  command: "py.test -s -v ~/driver/test_addclusterdriver.py"
+  command: "~/.local/bin/py.test -s -v ~/driver/test_addclusterdriver.py"
