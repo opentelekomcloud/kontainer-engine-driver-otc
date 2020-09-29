@@ -5,6 +5,15 @@
     state: present
     name: "{{ packages }}"
 
+- name: Allow required port on zuul iptables
+  become: yes
+  iptables:
+    chain: INPUT
+    action: insert
+    jump: ACCEPT
+    protocol: tcp
+    destination_port: 443
+
 - name: Pull rancher image
   docker_image:
     name: "{{ rancher_image }}"
@@ -47,7 +56,6 @@
   retries: 10
   delay: 10
   failed_when: login_result.status not in [201]
-  ignore_errors: true
 
 - name: Set rancher URL
   uri:
@@ -64,7 +72,6 @@
   retries: 3
   delay: 10
   failed_when: url_result.status not in [200]
-  ignore_errors: true
 
 - name: Set rancher password
   uri:
@@ -81,7 +88,6 @@
   retries: 3
   delay: 10
   failed_when: password_result.status not in [200]
-  ignore_errors: true
 
 - name: Create test directories
   file:
