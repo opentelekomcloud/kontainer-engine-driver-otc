@@ -7,6 +7,6 @@
   register: testcases
 
 - name: Execute Test cases in Loop 
-  command: "{{ rancher_pip_virtualenv }}/bin/py.test -s -v {{ item.path }}"
+  command: "py.test -s -v {{ item.path }}"
   with_items: "{{ testcases.files }}"
 

@@ -1,6 +1,5 @@
 ---
 # defaults file for prepare-rancher-env
-rancher_pip_virtualenv: "{{ ansible_user_dir }}/.local/venv"
 rancher_image: rancher/rancher
 selenium_chrome_image: selenium/standalone-chrome
 

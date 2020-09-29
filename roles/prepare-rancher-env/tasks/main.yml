@@ -2,7 +2,6 @@
 # tasks file for prepare-rancher-env
 - name: Install required pip packages
   pip:
-    virtualenv: "{{ rancher_pip_virtualenv|default(omit) }}"
     state: present
     name: "{{ packages }}"
 
@@ -105,4 +104,4 @@
   when: item.state == 'file' and item.path != "test_addclusterdriver.py"
 
 - name: Add Cluster driver to rancher
-  command: "{{ rancher_pip_virtualenv }}/bin/py.test -s -v ~/driver/test_addclusterdriver.py"
+  command: "py.test -s -v ~/driver/test_addclusterdriver.py"
