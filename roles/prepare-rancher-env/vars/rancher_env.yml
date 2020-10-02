@@ -1,0 +1,2 @@
+rancher_env:
+  RANCHER_PASSWORD: '{{ rancher_credentials.rancher_password }}'

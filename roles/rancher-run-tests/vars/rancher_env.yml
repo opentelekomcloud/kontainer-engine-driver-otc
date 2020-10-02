@@ -1,0 +1,6 @@
+rancher_env:
+  RANCHER_PASSWORD: '{{ rancher_credentials.rancher_password }}'
+  RANCHER_CCE_DOMAIN_NAME: '{{ rancher_credentials.domain_name }}'
+  RANCHER_CCE_PROJECT_NAME: '{{ rancher_credentials.project_name }}'
+  RANCHER_CCE_USER_NAME: '{{ rancher_credentials.user_name }}'
+  RANCHER_CCE_PASSWORD: '{{ rancher_credentials.password }}'

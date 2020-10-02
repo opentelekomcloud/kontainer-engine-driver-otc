@@ -6,7 +6,11 @@
     paths: ~/tests
   register: testcases
 
+- name: Include rancher env variables
+  include_vars: rancher_env.yml
+
 - name: Execute Test cases in Loop 
   command: "~/.local/bin/py.test -s -v {{ item.path }}"
   with_items: "{{ testcases.files }}"
+  environment: "{{ rancher_env }}"
 

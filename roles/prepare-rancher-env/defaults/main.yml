@@ -10,15 +10,11 @@ packages:
 
 rancher_prefix: rancher-
 
-rancher_password: '{{ rancher_credentials.password }}'
-rancher_driver_location: https://github.com/opentelekomcloud/kontainer-engine-driver-otc/releases/download/v0.2.1/kontainer-engine-driver-otc-0.2.1-linux-amd64.tgz
-rancher_ui_location: https://csm-assets.obs.eu-de.otc.t-systems.com/ui/component.js
+rancher_driver_location: "https://github.com/opentelekomcloud/kontainer-engine-driver-otc/releases/download/v0.2.3/kontainer-engine-driver-otccce_0.2.3_linux_amd64.tar.gz"
+rancher_ui_location: "https://github.com/opentelekomcloud/ui-cluster-driver-otc/releases/download/v0.1.3/component.js"
+rancher_whitelist: "*.github.com"
 
 rancher_cce_cluster_name: rancher-test-cce-cluster
-rancher_cce_domain_name:  '{{ rancher_credentials.domain_name }}'
-rancher_cce_project_name: '{{ rancher_credentials.project_name }}'
-rancher_cce_user_name: '{{ rancher_credentials.user_name }}'
-rancher_cce_password: '{{ rancher_credentials.password }}'
 
 rancher_cce_vpc_name: "{{ (rancher_prefix + 'otc-vpc-router') }}"
 rancher_cce_subnet_name: "{{ (rancher_prefix + 'default-subnet') }}"

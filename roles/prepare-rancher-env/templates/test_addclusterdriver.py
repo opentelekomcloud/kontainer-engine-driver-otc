@@ -2,6 +2,7 @@
 import pytest
 import time
 import json
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -37,7 +38,7 @@ class TestAddclusterdriver():
       self.element=self.driver.find_element(By.ID, "login-password-local")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 5 | type | id=login-password-local | 
-      self.driver.find_element(By.ID, "login-password-local").send_keys("{{ rancher_password }}")
+      self.driver.find_element(By.ID, "login-password-local").send_keys(os.environ.get('RANCHER_PASSWORD'))
       # 6 | click | css=.bg-primary |
       self.element=self.driver.find_element(By.CSS_SELECTOR, ".bg-primary")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
@@ -60,7 +61,7 @@ class TestAddclusterdriver():
       self.element=self.driver.find_element(By.XPATH, "//span[contains(.,\'Add Domain\')]")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 14 | type | xpath=//div[contains(.,'Whitelist Domains')]/div/span/input | *.otc.t-systems.com
-      self.driver.find_element(By.XPATH, "//div[contains(.,\'Whitelist Domains\')]/div/span/input").send_keys("*.otc.t-systems.com")
+      self.driver.find_element(By.XPATH, "//div[contains(.,\'Whitelist Domains\')]/div/span/input").send_keys("{{ rancher_whitelist }}")
       # 15 | click | xpath=//button[contains(.,'Create')] |
       self.element=self.driver.find_element(By.XPATH, "//button[contains(.,\'Create\')]")
       ActionChains(self.driver).move_to_element(self.element).click().perform()

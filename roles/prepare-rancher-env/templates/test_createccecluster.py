@@ -2,6 +2,7 @@
 import pytest
 import time
 import json
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -36,7 +37,7 @@ class TestCreateccecluster():
       self.element=self.driver.find_element(By.ID, "login-password-local")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 5 | type | id=login-password-local | 
-      self.driver.find_element(By.ID, "login-password-local").send_keys("{{ rancher_password }}")
+      self.driver.find_element(By.ID, "login-password-local").send_keys(os.environ.get('RANCHER_PASSWORD'))
       # 6 | click | css=.bg-primary |
       self.element=self.driver.find_element(By.CSS_SELECTOR, ".bg-primary")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
@@ -55,22 +56,22 @@ class TestCreateccecluster():
       self.element=self.driver.find_element(By.NAME, "domain-name")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 12 | type | name=domain-name | 
-      self.driver.find_element(By.NAME, "domain-name").send_keys("{{ rancher_cce_domain_name }}")
+      self.driver.find_element(By.NAME, "domain-name").send_keys(os.environ.get('RANCHER_CCE_DOMAIN_NAME'))
       # 13 | click | name=project-name |
       self.element=self.driver.find_element(By.NAME, "project-name")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 14 | type | name=project-name | 
-      self.driver.find_element(By.NAME, "project-name").send_keys("{{ rancher_cce_project_name }}")
+      self.driver.find_element(By.NAME, "project-name").send_keys(os.environ.get('RANCHER_CCE_PROJECT_NAME'))
       # 15 | click | name=username |
       self.element=self.driver.find_element(By.NAME, "username")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 16 | type | name=username | 
-      self.driver.find_element(By.NAME, "username").send_keys("{{ rancher_cce_user_name }}")
+      self.driver.find_element(By.NAME, "username").send_keys(os.environ.get('RANCHER_CCE_USER_NAME'))
       # 17 | click | name=passsword |
       self.element=self.driver.find_element(By.NAME, "passsword")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 18 | type | name=passsword | 
-      self.driver.find_element(By.NAME, "passsword").send_keys("{{ rancher_cce_password }}")
+      self.driver.find_element(By.NAME, "passsword").send_keys(os.environ.get('RANCHER_CCE_PASSWORD'))
       # 19 | click | css=.bg-primary |
       self.element=self.driver.find_element(By.CSS_SELECTOR, ".bg-primary")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
@@ -108,14 +109,6 @@ class TestCreateccecluster():
       ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 31 | runScript | window.scrollTo(0,1094.4000244140625) |
       self.driver.execute_script("window.scrollTo(0,1094.4000244140625)")
-      # 32 | click | xpath=//button[contains(.,'Next: Setup Load Balancer')] |
-      self.element=self.driver.find_element(By.XPATH, "//button[contains(.,\'Next: Setup Load Balancer\')]")
-      ActionChains(self.driver).move_to_element(self.element).click().perform()
-      # 33 | runScript | window.scrollTo(0,1328) |
-      self.driver.execute_script("window.scrollTo(0,1328)")
-      # 34 | click | name=use-lb |
-      self.element=self.driver.find_element(By.NAME, "use-lb")
-      ActionChains(self.driver).move_to_element(self.element).click().perform()
       # 35 | click | xpath=//button[contains(.,'Finish & Create Cluster')] |
       self.element=self.driver.find_element(By.XPATH, "//button[contains(.,\'Finish & Create Cluster\')]")
       ActionChains(self.driver).move_to_element(self.element).click().perform()

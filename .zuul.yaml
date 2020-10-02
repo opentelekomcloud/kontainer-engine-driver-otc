@@ -46,46 +46,57 @@
     name: rancher_credentials
     data:
       user_name: !encrypted/pkcs1-oaep
-        - XmF//QEkTSvQjIClGYIDdEt9u0Li+7uCNSwZuLmTrbR0USd7EB4LZXu6IEF57Qv9tFg5t
-          BIx/Bqos8V+mK4BTuBbVWOshdkje3/kc2Bycdm6xDkduwZoQcLFal9BvIVTnhL7QeQOvJ
-          B+/A39eqkE3ZjaWT9iqQ2mPGsg2c0B+MI5ZfoQGGJCqLpMd6QCRa7o778cQa+PPI57OAY
-          1vZlhXLtjZe45fmQSm6uZAkfQwFd2AOdhMz7LJYpX+yRMzBtUTVs9g/3L2zIFbHVAPFUs
-          8K0cAK0mP6M8rjNn3gVAU+bhXPWvG0KNks0wUCXcgwP46RpWiACE80xzmbBXdFQIvYfQa
-          Bl0O9vTBnFbAHBSgpICT/4dVdBOEKq9tdqsMCfZcoaJCUvy7FFXSMtvipgULY9kxQ/7y1
-          DMgZnLesGCOHlMK9+l8FjuX9y+UZA+N7NejnWo3FZ9/0a536ah3JGBp6PFtSfKB+kyaXz
-          bF5FCcZTtcCgAWJke91YA3RW5PJPLvvVI9i65hoQ5tS0ONX75r63cVN8URApziQtuqPI0
-          Ngw6IQ/SRO3hZCEGO/1sdvDcH/mozSSpYQ0YPtqQVwilTgG5jZgj1ONrLmgYbM9Vncd8J
-          AfQBE7laVfArdzqRSp+jZ2Ss+Wmbm5EfG2ioCfOI7xLV5MRFPoMajRJc9deRgg=
+        - ZHrg13IzwMSLjFdmoa5vjZAL1I5RYQdL1+KLVxhfmjZH9J6MqPFqlAzEz73ZCE1xtFYii
+          TcOHaNOdpghVIkSTLf4SSPnMN/obJs6TjQkmv1fc0HFpcpFsmVMgCfdt8iIht+NGnqkJJ
+          XQm0ScsqH4bj8HKdsy3nhQw9PgH/dFRPkhHqoj+DTzkzLrZFO+++ACdmsFrOLHXquBiw/
+          0CXFx8f7W5j/wQ0QLlmQyGls+UHI6NR7RY2sWT6w2XwWKyBAxHvpynSrvr6gGVfUrSBaC
+          LG83SknMyBlGgi7Ol2x74WlzuXIdbUpNaxK7oSUi0SceOOWuz29z5GVn1V99RUSfcHqws
+          y+2EyllJJew22kxe0vBffN4yGygG2YCxRfF7JagAh3TnHoxk0CrtJRQRu1dy79pbLV5rl
+          Srp2C8bK77ZNOIsxpgGAxgtKaT7ZfXXhf8L5i2hvemLdjsJ5L3RGBDouoowLbeAK2aFhC
+          psju+1/72h/Alwpn4OZcYGTud4snu2OeFQHsAxPwmaWm7lElKyJoD5GWJv/4qrCvwBSJ2
+          qVYTu5yF9VBpdvpUk4tNPD9pzzZwk/+zLj4VXRcjyH99BMwkzHzc747DYaShlx4EHwQ/2
+          uWWSD4A5+e3eK5+Vva/KXSlwvQNQeT/nC4aYSbpp+amDIzEmIYhy2vwHMC0FhA=
       password: !encrypted/pkcs1-oaep
-        - mQ06zMvG3XrrG+Zstqor303HyOkBKyl6kwOl4jkySgEMFSPPXHiX9B0PmO9FyKcXl/uAp
-          wRPqcXhqdNIdzy9eAeiCfcT5Vj5goezCjSZxrRrrTVk4pzFNr3h+0aZ9WPJlr3oDdztIy
-          R5/cKeMtvq9puWtvXOdWZAkFHcP9Ohf9khF9VU7gRLrWdV1rQ9orn++4AK1hmJYXNXVHQ
-          Tm3AuCzQknyBlUkJ2TOvwCocc5o4WZ6H8kcuKmnkxkIf6yd9Eigj029VnT2u/l9klct5s
-          tTHrWlEJZ/38qVzNPaF4hcxQobUpMSuS4xHXXlGnb+6WXTEheKVzvBsfrGY5w/WlGJAlf
-          MEnt3OTfHRN8aGH51PkBHIebipQVT/3B+s25S+C93NTSm6Kk6MQZ/SAaFcOJxwzsvC15j
-          ygT9DlYjY7zLcJsbmSHX5aqMUHdupGrmRVIgX1o207Ywwt1L6G9Sh4vLvB8E/QimRlISm
-          uf4s9fpasX5Nmz7RpBLVI1zET0ew8vFIwh+954VntMWLbyhOtzhRp4novB8IJz02wSaVK
-          jUoMnJWQQkmWy1HEf5ZPgaI+eMj74VpJ4pC+ZBV9oP7blVbK8vF4fB4zdidoBzCkJKXTs
-          DeRYIybv0TQcqpe4yBBQbrV4JBCav9cooXZvNupOgHqVPjuZ48nazEGBk9RrWA=
+        - mwjn51WR68/5IZ1UJUS5O5RSd7W/0azDnKdEDXi+uTiPIxBIw8bX/6C6Yjed8XtbQ4PLW
+          vLxb8EDDYmbP3NwD/Fjl9MMZm/uSEGw5uhOF50OrelcDQT5xgZNRJMcJTSpOzikHjycks
+          PnZuZxY086jvdpVOWkuoqF38htArnvw6A2dxIjq6DSO6tvcyDNQgjTjVdoNvTagVfIHjV
+          DlLN7RlpCNidgb1AkvU+SRU6ZfCPZflsdvRd1blOamJMbUrfdzapKusugzomA+Z6NRB2f
+          Yukj9qRpuT9tLeCzN1w1LiEpkgAcz5x9hLPyvr7cfFZ2P8w7gumt7d+nfb2IncFKz8A3M
+          XHrKmQXhbbemo+y3RVREe1Gl2MN14f1TAs0lZ7HeJGt0r44FNOjRum/kaiZMx8lpwMdWk
+          A4BY4jEqpV11237kZVObfntckzEIm2nmUjzUbBvAlDadPhLIqtkxA3RqInQh/amG7T/+v
+          sm/9q3jHA9Kss3bGncP0FIbZzMYDqYUoVffmiLKHY5m6eJmVXJ8vdAUa6+QKll+2JFDvn
+          Rj0uQEuWDkZ3KorX+4W5ZZbf/5XKPE5VvBwjFIRYNgktSPb+y7HSpW9a4g13lxJpJfyAA
+          eMMCMDbXYXNedqhCi6JbOxsgZuHhuI2YJEeufr0SUDkW2+MqIuVuFuJjXKFysQ=
       project_name: !encrypted/pkcs1-oaep
-        - W1zxF68k1DC2M1hZxABN4S64RlDs2uh67GmgpVCEbWCt8rXmA/Mx4fSWb+ue/2OvOAIn4
-          ixRB7Dvl718La1eZXBwQLKxQeX+qc7SDwBEyhlGAS7UrRrPFpeFJNoWBiwnJxhCHMgaxY
-          EhNYf3owdqD9c2i1Aoj4d+gcGCdpPKB2jqGwTTGppkSb6TnRTmkSIAwm1kdGyZnCLkzn5
-          4bIj8bkuRQx4PZjJkicl4w7Kkil3Bizuar7C7Xkf0jjYB0K93h9UQQMtfpWf359yzRAxB
-          dRX2b4kY+c5Fg1yDtL6mzlZzZfPDCGMmyr070VMB9JQI2E5SUgE64IDL57G0A4Xm3pbrB
-          vCVgkPNAY9dLx5Y8MsJO8K/wRk2a81con6FsHFdaEC4km/D6kaRfRKv1Sst6DW4AYdA14
-          xkCx/YGmt7w4mWKEiqxaS4378TL0r88Uj9amobW7NlOSp/a/W+/QNYW/kBfUsh2+MXPWm
-          f32C/xd76saswQMbz+Zn+Cgh5Y4DqAkjFgdGdIbocX7FJgnyFXzJYpuiIL9IvAmubtL0b
-          VAARkggnUWTC9pT9NC0g4iNQs8g10g/idH5uPf6w6WPv8kUDOYnhVaqUvpDtLU0rtnK7a
-          JAszURLVSVhBkKSdVMrRXmu1nXH95Epm3W1Szb/ynONHmHWRJ4VLZTAA+BdICY=
+        - HcUH2baheGU7UKZ8H8WRVJJOV3lt2nxdKUyyE8ajG3GwEUuExv20padU0oMH2sgR+KMq3
+          aR6vXTRjCP0o8yMIVEJjyv8N5U74sJFclSJ9ASnWyfAhJ0v8JyxNBKx/lzSi33+fweGkx
+          XZLU66pxKntCsiuRWH/aizxoBKHyQjUyVirm/nzqonAzqA3CF1e3JZoWKqS3Ie75l7k+U
+          RmHlu6ZEJ7g3GUEjikHPAd+V0qVzJYPFOoim/KQldVSaTOIdJs5DQHEa2IOrzMmuKtZ8W
+          28lSd7EjsWVyAzxdg/wlUWN9lkuwCWGEX7OpIIcAxMCJv6Jh+C/13vdX596b9TSvR/QuW
+          QJXKHidB8XdysLE3MTQZFOTvhoMwaGPtBuMFeTkjl4Mr6MxE7dsTQcNXapOtJnpczTwpm
+          mmcs12mOjPauPry46gZQCJCAYfpzNYJj2DvwdIsvaqsI2vX/PtfdMjXLcCrvAxmIJOTSP
+          zbReQVoKy7SQuVpwEUmKekwM5YM4tr2cXwIDEVZAl5L2y8S3XwRZqEmrJJR/GbKlQig/B
+          RETSNbw2Kg8zTutNtuQyW8hNEvVHxIOIb2K4yw6C8L9ZqUOCx4C6RnDGsVXqpAxFU2yPd
+          MBWSdhRKdDr1Ik7o57kJ/tovnGJKfMMyzO+erJFrSx/Bkbbw0NcH0k5LK2YjdQ=
       domain_name: !encrypted/pkcs1-oaep
-        - M/SVuVInCBg5zhpP0zx2UIfOKbQ6HXTr/8QF5JEtLIDEqUSYVhloP2oSxM8Zn+JqLarVg
-          82IugRtjEL+UT9SzYCsaUi/qWcU18t8d7V1lkkZAJnTLhkkTkLF/hSDrLO2iG9YmyhW7K
-          eJMtWmRLcSd6iwcZ0PpnuXt0y7BW8urw8dzjfdWcYfHFRQMnpAVcq0vOGDBos8HezEG6F
-          BEkepzq/mQzw3Eqc19x1XSXlGPIvZpqMd6vRrx2xCYdpssuirkwJiMkdpPJVTKcfyp2in
-          0iaapHpGMHnD7sfksI8syOXszc1YxyoSvsUASOtx/+76hr1sU1gHQ9zfEGyoSI9ZCNuey
-          RuLra0cIitiN6guycNXNjQJEcscjQ//R9sIztrfq+/Ex9d5D9Pwo1VY31f1nISDQi1xcf
-          D2Hh2HsS6hehwinP6/3V1UycydLRlVQGpXzbXe/zjAwahy0C0FJf5Rff8m+wQZNjDGmGg
-          3wNvL2lRSjlYhHjFC6wlR8wyUvPb3OovMM4weLBLd93+WWUcVJRI1fCmWujSVv9Rbgrp1
-          CviMJVRFeVZrkw+ebsee0BYlrzaaMCu0/araderwBJLGSPj36C3KiuTzr7Rq8cJvdcWuj
-          Y/PMENLL6JMTPR9HqJ8ZDXQFnTEPBz60q7hsPpqPHDZYs1MqtIOHbZPILrGEsI=
+        - x0gTsUOk88MR6J2o9EJa+g6mok0/DUP4ncfWXNoiLjxJe10eCxJTUwJfsgT5OYRyUljW/
+          1Hp0a4pvuen1ORzg8TI/VF7wBPp6NavPH0yyLu8FKKcCwLxW/VXwWhiFPbwIu96sm2PA9
+          uMbVErvWkOu/Ywz+wfu63Tk6IyuRS55H27n9lVoXEfKQWE7dI51KDBF4uq4AaPP+8UTwR
+          UJp1U7prP7F5qBa2Eoiex2tqBynczzJdvr6n0tuPJnUWWelZDzNR00OQF7w2Yv0qxavEp
+          HdmcK3s4trGu8/cxJ9DD5/15um59k4L//VTmGPhrBmjgAu4RJZRfTEhSpA4GVg78Ood8V
+          Dl5Icq8BgNRZtHhHmHxtNI9Q3JaHTLtAEKiCuGywQ/4LODCfubylIxnbKcy3Q2uLcfRU/
+          nRMBA5jpjZzi2q2TQh120F+5o1p5fW2adJ3dx3alWt5vqoXFPfoEgjdP06/76kwzAeECA
+          fzM3KUqdv5wStsjCzRbPbcux1TkLpu9MSEOoeTTeWk5ltwluhTSEVfLAIB3Zs9P/2VISZ
+          8sM/Bc1K0bIErVYs/ZT6HJCM0udDfrS+O8OtoqvUV+j7MP2Zew/GXzp8PHF3eh8zBZTUR
+          9YgmQckomtjaQVWKWy0MYt5NKj08M9oOw+1twNrw4bVR5hhf7W0GQ+68HbUhos=
+      rancher_password: !encrypted/pkcs1-oaep
+        - PJKqmCsLL4zXf21kp6TcuFOVcA//c21I8Xeecg0P/oy4wSg4yd1HygHUA6hhXOqlHZI1s
+          4IzOFsDf4U/TTFDL0PeLjJbUtwgMl7onWYXoUNrPlQ7ob+zTd3t3OjjFYrpIUgr4X6CNM
+          80zpERIXVJ5uWu38N7lssXaEb1LEWLwipZZP9JdYWDGJMZoJj+E4iWrqEp543ou9W37j2
+          Gc2833SO74z6LQLILuFBbXI6xOtnonnZbOsZKKBZFsuuSKznZ74Glezaj9ncqTVn6dU9H
+          jqwFDYbhCL6r1VMNjVjmd+uIdi6xsZVRbiLtb5MdKOrmKhRBFwCXKIOM+KE3HO2QwmAyw
+          vI3mXiafCcHrpTLIkXkZqkY/qS15JjdOX9NAcTfoNQU3YEPlNWmOXsq+rWuCwB9V+eZUA
+          27epW2ug1UdxYksSD4yB+GzxhI1ltUHlSqil5IiheI2ypIOvnOylZoYSXZPytQP5+5lPi
+          nm0fbgY55ye0RnwnmKdKclwYCc9Uck3QtattMuRvgxSNEtqa3jcRgluw6hj/OwwoOVrsy
+          83ruPJ2gylcACJC6g8rqeoyKFoSz55nDj0t6Tq6+xS5oNRzS0kcKxJOUa9mYZXKfBUN3R
+          MLOPkNfCzwfRBE95yF/ObO4MEj7M2xB/Dd6G30VNx3Km65V28Vkc/5DIRRU/A4=

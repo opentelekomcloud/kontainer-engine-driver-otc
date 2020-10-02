@@ -5,6 +5,9 @@
     state: present
     name: "{{ packages }}"
 
+- name: Include rancher env variables
+  include_vars: rancher_env.yml
+
 - name: Allow required port on zuul iptables
   become: yes
   iptables:
@@ -77,7 +80,7 @@
   uri:
     url: 'https://{{ ansible_default_ipv4.address }}/v3/users?action=changepassword'
     method: POST
-    body: {"currentPassword":"admin","newPassword":"{{ rancher_password }}"}
+    body: {"currentPassword":"admin","newPassword":"{{ rancher_env.RANCHER_PASSWORD }}"}
     headers:
       Authorization: "Bearer {{ login_result.json.token }}"
     status_code: 200
@@ -111,3 +114,4 @@
 
 - name: Add Cluster driver to rancher
   command: "~/.local/bin/py.test -s -v ~/driver/test_addclusterdriver.py"
+  environment: "{{ rancher_env }}"
