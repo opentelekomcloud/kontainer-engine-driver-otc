@@ -631,7 +631,7 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 	}()
 
 	if err := setupNetwork(client, state); err != nil {
-		return nil, fmt.Errorf("failed to setup network")
+		return nil, fmt.Errorf("failed to setup network: %s", err)
 	}
 
 	if err := createCluster(client, state); err != nil {
