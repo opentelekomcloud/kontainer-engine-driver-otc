@@ -8,8 +8,6 @@
     gate:
       jobs:
         - golang-make-functional
-        - golang-make-vet
-        - goreleaser-build
     tag:
       jobs:
         - release-goreleaser

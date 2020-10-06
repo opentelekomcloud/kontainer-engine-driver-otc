@@ -460,6 +460,9 @@ func setupNetwork(client services.Client, state *clusterState) error {
 			state.ManagedResources.Vpc = true
 			vpcID = vpc.ID
 		}
+		if err := client.WaitForVPCStatus(vpcID, "OK"); err != nil {
+			return fmt.Errorf("failed waiting for VPC status 'OK': %s", err)
+		}
 		state.VpcID = vpcID
 	}
 
@@ -475,6 +478,9 @@ func setupNetwork(client services.Client, state *clusterState) error {
 			}
 			state.ManagedResources.Subnet = true
 			subnetID = subnet.ID
+		}
+		if err := client.WaitForSubnetStatus(subnetID, "ACTIVE"); err != nil {
+			return fmt.Errorf("failed wating for subnet sttatus 'ACTIVE': %s", err)
 		}
 		state.SubnetID = subnetID
 	}
@@ -525,12 +531,14 @@ func createCluster(client services.Client, state *clusterState) error {
 		return err
 	}
 	clusterID = cluster.Metadata.Id
+	state.ClusterID = clusterID
 	state.NodeConfig.ClusterID = clusterID
+
 	nodeIDs, err = client.CreateNodes(&state.NodeConfig, int(state.NodeCount))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create nodes: %s", err)
 	}
-
+	state.NodeIDs = nodeIDs
 	nodesStatus, err := client.GetNodesStatus(clusterID, nodeIDs)
 	if err != nil {
 		return err
@@ -668,6 +676,7 @@ func (d *CCEDriver) Update(_ context.Context, info *types.ClusterInfo, updateOpt
 			return nil, err
 		}
 		state.NodeIDs = tmpState.NodeIDs
+		state.NodeCount = newState.NodeCount
 	}
 
 	if newState.Description != state.Description {
@@ -679,10 +688,8 @@ func (d *CCEDriver) Update(_ context.Context, info *types.ClusterInfo, updateOpt
 		if err := client.UpdateCluster(newState.ClusterID, spec); err != nil {
 			return nil, err
 		}
+		state.Description = newState.Description
 	}
-
-	state.NodeCount = newState.NodeCount
-	state.Description = newState.Description
 
 	logrus.Info("update cluster success")
 	return info, stateToInfo(info, *state)
