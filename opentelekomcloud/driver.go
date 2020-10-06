@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getlantern/deepcopy"
 	"github.com/opentelekomcloud-infra/crutch-house/services"
 	"github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
@@ -340,8 +341,19 @@ func (d *CCEDriver) GetDriverUpdateOptions(context.Context) (*types.DriverFlags,
 	return flags, nil
 }
 
+func optsToString(opts types.DriverOptions) string {
+	var opts2 types.DriverOptions
+	if err := deepcopy.Copy(opts2, opts); err != nil {
+		return ""
+	}
+	opts2.StringOptions["password"] = "***"
+	opts2.StringOptions["secretKey"] = "***"
+	opts2.StringOptions["token"] = "***"
+	return fmt.Sprintf("%v", opts2)
+}
+
 func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
-	logrus.Info("Start setting state from provided opts: \n", opts)
+	logrus.Info("Start setting state from provided opts: \n", optsToString(*opts))
 	strOpt, strSliceOpt, intOpt, boolOpt := getters(opts)
 	projectName := strOpt("project-name", "projectName")
 	state := &clusterState{
@@ -620,7 +632,7 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 
 	info := &types.ClusterInfo{}
 	defer func() {
-		logrus.WithError(storeState(info, state)).Info("Save cluster state: ", state)
+		logrus.WithError(storeState(info, state))
 	}()
 	client, err := getClient(state)
 	if err != nil {

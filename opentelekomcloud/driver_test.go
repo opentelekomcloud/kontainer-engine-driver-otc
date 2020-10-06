@@ -2,10 +2,10 @@ package opentelekomcloud
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/opentelekomcloud-infra/crutch-house/utils"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
 	"github.com/sirupsen/logrus"
 
 	"github.com/opentelekomcloud-infra/crutch-house/services"
@@ -29,8 +29,12 @@ var (
 )
 
 func getDriverOpts() *types.DriverOptions {
+	cloud, err := openstack.NewEnv("OS_").Cloud()
+	if err != nil {
+		panic(err)
+	}
 	stringOptions := map[string]string{
-		"accessKey":            os.Getenv("accessKey"),
+		"accessKey":            cloud.AuthInfo.AccessKey,
 		"authenticationMode":   "rbac",
 		"availabilityZone":     "eu-de-03",
 		"bmsPeriodType":        "month",
@@ -42,19 +46,19 @@ func getDriverOpts() *types.DriverOptions {
 		"containerNetworkMode": "overlay_l2",
 		"dataVolumeType":       "SATA",
 		"description":          "test cluster",
-		"domainName":           os.Getenv("domainName"),
+		"domainName":           cloud.AuthInfo.DomainName,
 		"driverName":           kontainerDriverName,
 		"keyPair":              kpName,
 		"name":                 name,
 		"nodeFlavor":           "s2.large.2",
 		"nodeOs":               "EulerOS 2.5",
-		"password":             os.Getenv("password"),
-		"projectName":          os.Getenv("projectName"),
+		"password":             cloud.AuthInfo.Password,
+		"projectName":          cloud.AuthInfo.ProjectName,
 		"region":               "eu-de",
 		"rootVolumeType":       "SATA",
-		"secretKey":            os.Getenv("secretKey"),
+		"secretKey":            cloud.AuthInfo.SecretKey,
 		"subnet":               subnetName,
-		"username":             os.Getenv("username"),
+		"username":             cloud.AuthInfo.Username,
 		"vpc":                  vpcName,
 		"appProtocol":          "TCP",
 	}
