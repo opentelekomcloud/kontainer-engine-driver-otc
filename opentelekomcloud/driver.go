@@ -457,6 +457,10 @@ func setupNetwork(client services.Client, state *clusterState) error {
 			if err != nil {
 				return err
 			}
+
+			if err = client.WaitForVPCStatus(vpc.ID, "OK"); err != nil {
+				return err
+			}
 			state.ManagedResources.Vpc = true
 			vpcID = vpc.ID
 		}
@@ -471,6 +475,10 @@ func setupNetwork(client services.Client, state *clusterState) error {
 		if subnetID == "" {
 			subnet, err := client.CreateSubnet(state.VpcID, state.SubnetName)
 			if err != nil {
+				return err
+			}
+
+			if err = client.WaitForSubnetStatus(subnet.ID, "ACTIVE"); err != nil {
 				return err
 			}
 			state.ManagedResources.Subnet = true
