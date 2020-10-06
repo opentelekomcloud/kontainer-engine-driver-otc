@@ -2,11 +2,12 @@ package opentelekomcloud
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"os"
 	"testing"
 
-	"github.com/opentelekomcloud-infra/crutch-house/clientconfig"
+	"github.com/opentelekomcloud-infra/crutch-house/utils"
+	"github.com/sirupsen/logrus"
+
 	"github.com/opentelekomcloud-infra/crutch-house/services"
 	"github.com/rancher/kontainer-engine/types"
 	"github.com/stretchr/testify/assert"
@@ -20,11 +21,11 @@ const (
 )
 
 var (
-	kpName              = services.RandomString(10, "kp-")
-	vpcName             = services.RandomString(10, "vpc-")
-	subnetName          = services.RandomString(10, "subnet-")
-	kontainerDriverName = services.RandomString(10, "kd-")
-	name                = services.RandomString(10, "c-", charset)
+	kpName              = utils.RandomString(10, "kp-")
+	vpcName             = utils.RandomString(10, "vpc-")
+	subnetName          = utils.RandomString(10, "subnet-")
+	kontainerDriverName = utils.RandomString(10, "kd-")
+	name                = utils.RandomString(10, "c-", charset)
 )
 
 func getDriverOpts() *types.DriverOptions {
@@ -91,20 +92,9 @@ func GetNewIntOpts() map[string]int64 {
 }
 
 func authClient(t *testing.T) services.Client {
-	client := services.NewClient(&clientconfig.ClientOpts{
-		AuthInfo: &clientconfig.AuthInfo{
-			AuthURL:     authURL,
-			Username:    os.Getenv("username"),
-			Password:    os.Getenv("password"),
-			ProjectName: os.Getenv("projectName"),
-			DomainName:  os.Getenv("domainName"),
-			AccessKey:   os.Getenv("accessKey"),
-			SecretKey:   os.Getenv("secretKey"),
-		},
-		RegionName:   "eu-de",
-		EndpointType: "public",
-	})
-	err := client.Authenticate()
+	client, err := services.NewClient("OS_")
+	require.NoError(t, err, "failed to initialize client")
+	err = client.Authenticate()
 	require.NoError(t, err, authFailedMessage)
 	return client
 }

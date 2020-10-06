@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/huaweicloud/golangsdk"
-	"github.com/huaweicloud/golangsdk/openstack/cce/v3/clusters"
-	"github.com/huaweicloud/golangsdk/openstack/cce/v3/nodes"
-	"github.com/opentelekomcloud-infra/crutch-house/clientconfig"
 	"github.com/opentelekomcloud-infra/crutch-house/services"
+	"github.com/opentelekomcloud/gophertelekomcloud"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/clusters"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/nodes"
 	"github.com/rancher/kontainer-engine/drivers/util"
 	"github.com/rancher/kontainer-engine/types"
 	"github.com/sirupsen/logrus"
@@ -59,7 +59,7 @@ type managedResources struct {
 type clusterState struct {
 	types.ClusterInfo
 	ClusterID             string
-	AuthInfo              clientconfig.AuthInfo
+	AuthInfo              openstack.AuthInfo
 	ClusterName           string
 	DisplayName           string
 	Description           string
@@ -349,7 +349,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 			Version:   strOpt("cluster-version", "clusterVersion"),
 			NodeCount: intOpt("node-count", "nodeCount"),
 		},
-		AuthInfo: clientconfig.AuthInfo{
+		AuthInfo: openstack.AuthInfo{
 			AuthURL:     authURL,
 			Token:       strOpt("token"),
 			Username:    strOpt("username"),
@@ -551,13 +551,12 @@ func createCluster(client services.Client, state *clusterState) error {
 }
 
 func getClient(state *clusterState) (client services.Client, err error) {
-	client = services.NewClient(&clientconfig.ClientOpts{
-		AuthInfo:     &state.AuthInfo,
+	client = services.NewCloudClient(&openstack.Cloud{
+		AuthInfo:     state.AuthInfo,
 		RegionName:   state.Region,
 		EndpointType: "public",
 	})
-	err = client.Authenticate()
-	if err != nil {
+	if err := client.Authenticate(); err != nil {
 		return nil, err
 	}
 	if err := client.InitVPC(); err != nil {

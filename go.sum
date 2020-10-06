@@ -442,8 +442,6 @@ github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c/go.mod h1:lADxMC39cJ
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/huandu/xstrings v1.2.0 h1:yPeWdRnmynF7p+lLYz0H2tthW9lqhMJrQV/U7yy4wX0=
 github.com/huandu/xstrings v1.2.0/go.mod h1:DvyZB1rfVYsBIigL8HwpZgxHwXozlTgGqn63UyNX5k4=
-github.com/huaweicloud/golangsdk v0.0.0-20200414012957-3b8a408c2816 h1:odMiLWHZ8AdQpBMJFD8mrQzKgUy09rKdFkr4TUNwols=
-github.com/huaweicloud/golangsdk v0.0.0-20200414012957-3b8a408c2816/go.mod h1:WQBcHRNX9shz3928lWEvstQJtAtYI7ks6XlgtRT9Tcw=
 github.com/imdario/mergo v0.3.5/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/imdario/mergo v0.3.6/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/imdario/mergo v0.3.7 h1:Y+UAYTZ7gDEuOfhxKWy+dvb5dRQ6rJjFSdX2HZY1/gI=
@@ -593,10 +591,10 @@ github.com/opencontainers/image-spec v1.0.1 h1:JMemWkRwHx4Zj+fVxWoMCFm/8sYGGrUVo
 github.com/opencontainers/image-spec v1.0.1/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=
 github.com/opencontainers/runc v0.1.1/go.mod h1:qT5XzbpPznkRYVz/mWwUaVBUv2rmF59PVA73FjuZG0U=
 github.com/openshift/prom-label-proxy v0.1.1-0.20191016113035-b8153a7f39f1/go.mod h1:p5MuxzsYP1JPsNGwtjtcgRHHlGziCJJfztff91nNixw=
-github.com/opentelekomcloud-infra/crutch-house v0.2.3 h1:ScRCQ9zGjvQfFDXIK9pSKmnjwozLJyRHyYIYKgfh/+4=
-github.com/opentelekomcloud-infra/crutch-house v0.2.3/go.mod h1:8I/1cFsBTegb8CCPzkUt36GS/nxDSI/dLxuW504tysQ=
-github.com/opentelekomcloud/gophertelekomcloud v0.0.8 h1:0pKi6Hwy6eX97kLbqLNrvgsj0CRRjqlynSHpByOQilg=
-github.com/opentelekomcloud/gophertelekomcloud v0.0.8/go.mod h1:fQE9cCBZDAbTaf5abj29mF8mQKHBD0QVtNO1iOyEtrg=
+github.com/opentelekomcloud-infra/crutch-house v0.2.4-0.20201006151002-76881d602a1b h1:L24HJQhsF4UxxZ+GcRlBw5Wx04/8yYqDfbs/RzSigOo=
+github.com/opentelekomcloud-infra/crutch-house v0.2.4-0.20201006151002-76881d602a1b/go.mod h1:4UrOy24J95TYpK2LXWmCS6Mo0knc/MD4wVZgEkQFiJY=
+github.com/opentelekomcloud/gophertelekomcloud v0.0.9-0.20201006135536-46b58478d4ea h1:4tjrM24ESnZN8XDr1KOldKog1gRCM/Yy+c68+KKNsbk=
+github.com/opentelekomcloud/gophertelekomcloud v0.0.9-0.20201006135536-46b58478d4ea/go.mod h1:fQE9cCBZDAbTaf5abj29mF8mQKHBD0QVtNO1iOyEtrg=
 github.com/opentracing-contrib/go-stdlib v0.0.0-20190519235532-cf7a6c988dc9/go.mod h1:PLldrQSroqzH70Xl+1DQcGnefIbqsKR7UDaiux3zV+w=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
