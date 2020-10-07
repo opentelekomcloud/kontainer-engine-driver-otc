@@ -737,10 +737,8 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 		switch cluster.Name {
 		case "internalCluster":
 			clusterInfo.RootCaCertificate = cluster.Cluster.CertAuthorityData
-			break
 		case "externalCluster":
 			clusterInfo.Endpoint = cluster.Cluster.Server
-			break
 		}
 	}
 
