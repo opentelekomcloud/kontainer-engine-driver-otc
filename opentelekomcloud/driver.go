@@ -341,19 +341,28 @@ func (d *CCEDriver) GetDriverUpdateOptions(context.Context) (*types.DriverFlags,
 	return flags, nil
 }
 
-func optsToString(opts types.DriverOptions) string {
-	var opts2 types.DriverOptions
+func optsToString(opts *types.DriverOptions) string {
+	var opts2 = new(types.DriverOptions)
 	if err := deepcopy.Copy(opts2, opts); err != nil {
 		return ""
 	}
-	opts2.StringOptions["password"] = "***"
-	opts2.StringOptions["secretKey"] = "***"
-	opts2.StringOptions["token"] = "***"
+	if opts2.StringOptions["password"] != "" {
+		opts2.StringOptions["password"] = "***"
+	}
+	if opts2.StringOptions["secretKey"] != "" {
+		opts2.StringOptions["secretKey"] = "***"
+	}
+	if opts2.StringOptions["accessKey"] != "" {
+		opts2.StringOptions["accessKey"] = "***"
+	}
+	if opts2.StringOptions["token"] != "" {
+		opts2.StringOptions["token"] = "***"
+	}
 	return fmt.Sprintf("%v", opts2)
 }
 
 func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
-	logrus.Info("Start setting state from provided opts: \n", optsToString(*opts))
+	logrus.Info("Start setting state from provided opts: \n", optsToString(opts))
 	strOpt, strSliceOpt, intOpt, boolOpt := getters(opts)
 	projectName := strOpt("project-name", "projectName")
 	state := &clusterState{
