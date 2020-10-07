@@ -32,7 +32,7 @@ class TestAddclusterdriver():
       # 2 | setWindowSize | 1552x840 |
       self.driver.set_window_size(1552, 840)
       # 3 | type | id=login-username-local | admin
-      WebDriverWait(self.driver, 30000).until(expected_conditions.presence_of_element_located((By.ID, "login-username-local")))
+      WebDriverWait(self.driver, 60).until(expected_conditions.presence_of_element_located((By.ID, "login-username-local")))
       self.driver.find_element(By.ID, "login-username-local").send_keys("admin")
       # 4 | click | id=login-password-local |
       self.element=self.driver.find_element(By.ID, "login-password-local")
@@ -65,10 +65,10 @@ class TestAddclusterdriver():
       # 15 | click | xpath=//button[contains(.,'Create')] |
       self.element=self.driver.find_element(By.XPATH, "//button[contains(.,\'Create\')]")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
-      # 16 | waitForElementPresent | xpath=//tr[contains(.,'Otc')]/td/span[contains(.,'Activating')] | 30000
-      WebDriverWait(self.driver, 30000).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'Otc\')]/td/span[contains(.,\'Activating\')]")))
-      # 17 | waitForElementPresent | xpath=//tr[contains(.,'Otc')]/td/span[contains(.,'Active')] | 30000
-      WebDriverWait(self.driver, 30000).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'Otc\')]/td/span[contains(.,\'Active\')]")))
+      # 16 | waitForElementPresent | xpath=//tr[contains(.,'Otc')]/td/span[contains(.,'Activating')] | 60 
+      WebDriverWait(self.driver, 60).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'Otc\')]/td/span[contains(.,\'Activating\')]")))
+      # 17 | waitForElementPresent | xpath=//tr[contains(.,'Otc')]/td/span[contains(.,'Active')] | 60 
+      WebDriverWait(self.driver, 60).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'Otc\')]/td/span[contains(.,\'Active\')]")))
     except Exception as e:
       print(e)
       self.driver.save_screenshot("screenshot-exception.png")
