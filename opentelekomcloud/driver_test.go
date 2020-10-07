@@ -38,6 +38,7 @@ func getDriverOpts(t *testing.T) *types.DriverOptions {
 	canonicalOpts, ok := opts.(golangsdk.AuthOptions)
 	require.True(t, ok)
 	stringOptions := map[string]string{
+		"token":                canonicalOpts.TokenID,
 		"authenticationMode":   "rbac",
 		"availabilityZone":     "eu-de-03",
 		"bmsPeriodType":        "month",
