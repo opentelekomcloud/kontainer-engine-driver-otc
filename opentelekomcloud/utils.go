@@ -5,12 +5,6 @@ import (
 	"github.com/rancher/kontainer-engine/types"
 )
 
-const (
-	clusterAdmin     = "cluster-admin"
-	netesDefault     = "netes-default"
-	defaultNamespace = "cattle-system"
-)
-
 var get = options.GetValueFromDriverOptions
 
 type strFromOpts func(keys ...string) string

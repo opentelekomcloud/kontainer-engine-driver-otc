@@ -2,11 +2,13 @@ package opentelekomcloud
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
-	"os"
 	"testing"
 
-	"github.com/opentelekomcloud-infra/crutch-house/clientconfig"
+	"github.com/opentelekomcloud-infra/crutch-house/utils"
+	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
+	"github.com/sirupsen/logrus"
+
 	"github.com/opentelekomcloud-infra/crutch-house/services"
 	"github.com/rancher/kontainer-engine/types"
 	"github.com/stretchr/testify/assert"
@@ -20,16 +22,23 @@ const (
 )
 
 var (
-	kpName              = services.RandomString(10, "kp-")
-	vpcName             = services.RandomString(10, "vpc-")
-	subnetName          = services.RandomString(10, "subnet-")
-	kontainerDriverName = services.RandomString(10, "kd-")
-	name                = services.RandomString(10, "c-", charset)
+	kpName              = utils.RandomString(10, "kp-")
+	vpcName             = utils.RandomString(10, "vpc-")
+	subnetName          = utils.RandomString(10, "subnet-")
+	kontainerDriverName = utils.RandomString(10, "kd-")
+	name                = utils.RandomString(10, "c-", charset)
+	osEnv               = openstack.NewEnv("OS_")
 )
 
-func getDriverOpts() *types.DriverOptions {
+func getDriverOpts(t *testing.T) *types.DriverOptions {
+	cloud, err := osEnv.Cloud()
+	require.NoError(t, err)
+	opts, err := openstack.AuthOptionsFromInfo(&cloud.AuthInfo, cloud.AuthType)
+	require.NoError(t, err)
+	canonicalOpts, ok := opts.(golangsdk.AuthOptions)
+	require.True(t, ok)
 	stringOptions := map[string]string{
-		"accessKey":            os.Getenv("accessKey"),
+		"token":                canonicalOpts.TokenID,
 		"authenticationMode":   "rbac",
 		"availabilityZone":     "eu-de-03",
 		"bmsPeriodType":        "month",
@@ -41,19 +50,18 @@ func getDriverOpts() *types.DriverOptions {
 		"containerNetworkMode": "overlay_l2",
 		"dataVolumeType":       "SATA",
 		"description":          "test cluster",
-		"domainName":           os.Getenv("domainName"),
+		"domainName":           canonicalOpts.DomainName,
 		"driverName":           kontainerDriverName,
 		"keyPair":              kpName,
 		"name":                 name,
 		"nodeFlavor":           "s2.large.2",
 		"nodeOs":               "EulerOS 2.5",
-		"password":             os.Getenv("password"),
-		"projectName":          os.Getenv("projectName"),
+		"password":             canonicalOpts.Password,
+		"projectName":          canonicalOpts.TenantName,
 		"region":               "eu-de",
 		"rootVolumeType":       "SATA",
-		"secretKey":            os.Getenv("secretKey"),
 		"subnet":               subnetName,
-		"username":             os.Getenv("username"),
+		"username":             canonicalOpts.Username,
 		"vpc":                  vpcName,
 		"appProtocol":          "TCP",
 	}
@@ -91,20 +99,9 @@ func GetNewIntOpts() map[string]int64 {
 }
 
 func authClient(t *testing.T) services.Client {
-	client := services.NewClient(&clientconfig.ClientOpts{
-		AuthInfo: &clientconfig.AuthInfo{
-			AuthURL:     authURL,
-			Username:    os.Getenv("username"),
-			Password:    os.Getenv("password"),
-			ProjectName: os.Getenv("projectName"),
-			DomainName:  os.Getenv("domainName"),
-			AccessKey:   os.Getenv("accessKey"),
-			SecretKey:   os.Getenv("secretKey"),
-		},
-		RegionName:   "eu-de",
-		EndpointType: "public",
-	})
-	err := client.Authenticate()
+	client, err := services.NewClient("OS_")
+	require.NoError(t, err, "failed to initialize client")
+	err = client.Authenticate()
 	require.NoError(t, err, authFailedMessage)
 	return client
 }
@@ -116,7 +113,7 @@ func computeClient(t *testing.T) services.Client {
 }
 
 func TestDriver_ClusterWorkflow(t *testing.T) {
-	driverOptions := getDriverOpts()
+	driverOptions := getDriverOpts(t)
 
 	ctx := context.Background()
 
@@ -134,7 +131,7 @@ func TestDriver_ClusterWorkflow(t *testing.T) {
 	info, err = driver.PostCheck(ctx, info)
 	assert.NoError(t, err)
 
-	newDriverOptions := getDriverOpts()
+	newDriverOptions := getDriverOpts(t)
 	newDriverOptions.IntOptions = GetNewIntOpts()
 
 	logrus.Info("Update cluster by adding 1 node")

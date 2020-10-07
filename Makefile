@@ -15,7 +15,7 @@ fmt:
 
 lint:
 	@echo Running go lint
-	@golint --set_exit_status ./...
+	@golangci-lint run
 
 vet:
 	@echo "go vet ."

@@ -8,11 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/huaweicloud/golangsdk"
-	"github.com/huaweicloud/golangsdk/openstack/cce/v3/clusters"
-	"github.com/huaweicloud/golangsdk/openstack/cce/v3/nodes"
-	"github.com/opentelekomcloud-infra/crutch-house/clientconfig"
+	"github.com/getlantern/deepcopy"
 	"github.com/opentelekomcloud-infra/crutch-house/services"
+	"github.com/opentelekomcloud/gophertelekomcloud"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/clusters"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/nodes"
 	"github.com/rancher/kontainer-engine/drivers/util"
 	"github.com/rancher/kontainer-engine/types"
 	"github.com/sirupsen/logrus"
@@ -59,7 +60,7 @@ type managedResources struct {
 type clusterState struct {
 	types.ClusterInfo
 	ClusterID             string
-	AuthInfo              clientconfig.AuthInfo
+	AuthInfo              openstack.AuthInfo
 	ClusterName           string
 	DisplayName           string
 	Description           string
@@ -340,8 +341,28 @@ func (d *CCEDriver) GetDriverUpdateOptions(context.Context) (*types.DriverFlags,
 	return flags, nil
 }
 
+func optsToString(opts *types.DriverOptions) string {
+	var opts2 = new(types.DriverOptions)
+	if err := deepcopy.Copy(opts2, opts); err != nil {
+		return ""
+	}
+	if opts2.StringOptions["password"] != "" {
+		opts2.StringOptions["password"] = "***"
+	}
+	if opts2.StringOptions["secretKey"] != "" {
+		opts2.StringOptions["secretKey"] = "***"
+	}
+	if opts2.StringOptions["accessKey"] != "" {
+		opts2.StringOptions["accessKey"] = "***"
+	}
+	if opts2.StringOptions["token"] != "" {
+		opts2.StringOptions["token"] = "***"
+	}
+	return fmt.Sprintf("%v", opts2)
+}
+
 func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
-	logrus.Info("Start setting state from provided opts: \n", opts)
+	logrus.Info("Start setting state from provided opts: \n", optsToString(opts))
 	strOpt, strSliceOpt, intOpt, boolOpt := getters(opts)
 	projectName := strOpt("project-name", "projectName")
 	state := &clusterState{
@@ -349,7 +370,7 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 			Version:   strOpt("cluster-version", "clusterVersion"),
 			NodeCount: intOpt("node-count", "nodeCount"),
 		},
-		AuthInfo: clientconfig.AuthInfo{
+		AuthInfo: openstack.AuthInfo{
 			AuthURL:     authURL,
 			Token:       strOpt("token"),
 			Username:    strOpt("username"),
@@ -460,6 +481,9 @@ func setupNetwork(client services.Client, state *clusterState) error {
 			state.ManagedResources.Vpc = true
 			vpcID = vpc.ID
 		}
+		if err := client.WaitForVPCStatus(vpcID, "OK"); err != nil {
+			return fmt.Errorf("failed waiting for VPC status 'OK': %s", err)
+		}
 		state.VpcID = vpcID
 	}
 
@@ -475,6 +499,9 @@ func setupNetwork(client services.Client, state *clusterState) error {
 			}
 			state.ManagedResources.Subnet = true
 			subnetID = subnet.ID
+		}
+		if err := client.WaitForSubnetStatus(subnetID, "ACTIVE"); err != nil {
+			return fmt.Errorf("failed wating for subnet sttatus 'ACTIVE': %s", err)
 		}
 		state.SubnetID = subnetID
 	}
@@ -525,12 +552,14 @@ func createCluster(client services.Client, state *clusterState) error {
 		return err
 	}
 	clusterID = cluster.Metadata.Id
+	state.ClusterID = clusterID
 	state.NodeConfig.ClusterID = clusterID
+
 	nodeIDs, err = client.CreateNodes(&state.NodeConfig, int(state.NodeCount))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create nodes: %s", err)
 	}
-
+	state.NodeIDs = nodeIDs
 	nodesStatus, err := client.GetNodesStatus(clusterID, nodeIDs)
 	if err != nil {
 		return err
@@ -543,13 +572,12 @@ func createCluster(client services.Client, state *clusterState) error {
 }
 
 func getClient(state *clusterState) (client services.Client, err error) {
-	client = services.NewClient(&clientconfig.ClientOpts{
-		AuthInfo:     &state.AuthInfo,
+	client = services.NewCloudClient(&openstack.Cloud{
+		AuthInfo:     state.AuthInfo,
 		RegionName:   state.Region,
 		EndpointType: "public",
 	})
-	err = client.Authenticate()
-	if err != nil {
+	if err := client.Authenticate(); err != nil {
 		return nil, err
 	}
 	if err := client.InitVPC(); err != nil {
@@ -613,7 +641,7 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 
 	info := &types.ClusterInfo{}
 	defer func() {
-		logrus.WithError(storeState(info, state)).Info("Save cluster state: ", state)
+		logrus.WithError(storeState(info, state))
 	}()
 	client, err := getClient(state)
 	if err != nil {
@@ -668,6 +696,7 @@ func (d *CCEDriver) Update(_ context.Context, info *types.ClusterInfo, updateOpt
 			return nil, err
 		}
 		state.NodeIDs = tmpState.NodeIDs
+		state.NodeCount = newState.NodeCount
 	}
 
 	if newState.Description != state.Description {
@@ -679,10 +708,8 @@ func (d *CCEDriver) Update(_ context.Context, info *types.ClusterInfo, updateOpt
 		if err := client.UpdateCluster(newState.ClusterID, spec); err != nil {
 			return nil, err
 		}
+		state.Description = newState.Description
 	}
-
-	state.NodeCount = newState.NodeCount
-	state.Description = newState.Description
 
 	logrus.Info("update cluster success")
 	return info, stateToInfo(info, *state)
@@ -719,10 +746,8 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 		switch cluster.Name {
 		case "internalCluster":
 			clusterInfo.RootCaCertificate = cluster.Cluster.CertAuthorityData
-			break
 		case "externalCluster":
 			clusterInfo.Endpoint = cluster.Cluster.Server
-			break
 		}
 	}
 
