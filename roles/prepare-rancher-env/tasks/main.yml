@@ -17,11 +17,6 @@
     protocol: tcp
     destination_port: 443
 
-- name: Pull rancher image
-  docker_image:
-    name: "{{ rancher_image }}"
-    source: pull
-
 - name: Start  Rancher container
   docker_container:
     name: rancher
@@ -31,11 +26,8 @@
       - 0.0.0.0:8080:8080
     restart_policy: unless-stopped
     detach: yes
-
-- name: Pull selenium CHROME image
-  docker_image:
-    name: "{{ selenium_chrome_image }}"
-    source: pull
+    privileged: yes
+    pull: yes
 
 - name: Start Selenium CHROME container
   docker_container:
@@ -45,6 +37,7 @@
       - 0.0.0.0:4444:4444
     restart_policy: unless-stopped
     detach: yes
+    pull: yes
 
 - name: Get default rancher login token
   uri:
