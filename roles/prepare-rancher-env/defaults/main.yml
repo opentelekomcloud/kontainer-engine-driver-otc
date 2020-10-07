@@ -10,9 +10,9 @@ packages:
 
 rancher_prefix: rancher-
 
-rancher_driver_location: "https://github.com/opentelekomcloud/kontainer-engine-driver-otc/releases/download/v0.2.3/kontainer-engine-driver-otccce_0.2.3_linux_amd64.tar.gz"
-rancher_ui_location: "https://github.com/opentelekomcloud/ui-cluster-driver-otc/releases/download/v0.1.3/component.js"
-rancher_whitelist: "*.github.com"
+rancher_driver_location: "https://github.com/opentelekomcloud/kontainer-engine-driver-otc/releases/download/v1.0.0-rc2/kontainer-engine-driver-otccce_1.0.0-rc2_linux_amd64.tar.gz"
+rancher_ui_location: "https://csm-assets.obs.eu-de.otc.t-systems.com/cluster-ui/component.js"
+rancher_whitelist: "*.otc.t-systems.com"
 
 rancher_cce_cluster_name: rancher-test-cce-cluster
 

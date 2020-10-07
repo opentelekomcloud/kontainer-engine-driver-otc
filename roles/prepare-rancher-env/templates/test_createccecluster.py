@@ -116,8 +116,8 @@ class TestCreateccecluster():
       assert self.driver.find_element(By.LINK_TEXT, "{{ rancher_cce_cluster_name }}").text == "{{ rancher_cce_cluster_name }}"
       # 37 | assertText | xpath=//tr[contains(.,'{{ rancher_cce_cluster_name }}')]/td/span[contains(.,'Provisioning')] | Provisioning
       assert self.driver.find_element(By.XPATH, "//tr[contains(.,\'{{ rancher_cce_cluster_name }}\')]/td/span[contains(.,\'Provisioning\')]").text == "Provisioning"
-      # 38 | waitForElementPresent | xpath=//tr[contains(.,'{{ rancher_cce_cluster_name }}')]/td/span[contains(.,'Active')] | 900000
-      WebDriverWait(self.driver, 900000).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'{{ rancher_cce_cluster_name }}\')]/td/span[contains(.,\'Active\')]")))
+      # 38 | waitForElementPresent | xpath=//tr[contains(.,'{{ rancher_cce_cluster_name }}')]/td/span[contains(.,'Active')] | 900
+      WebDriverWait(self.driver, 900).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'{{ rancher_cce_cluster_name }}\')]/td/span[contains(.,\'Active\')]")))
       # 39 | assertText | xpath=//tr[contains(.,'{{ rancher_cce_cluster_name }}')]/td/span[contains(.,'Active')] | Active
       assert self.driver.find_element(By.XPATH, "//tr[contains(.,\'{{ rancher_cce_cluster_name }}\')]/td/span[contains(.,\'Active\')]").text == "Active"
       # 40 | click | xpath=//tr[contains(.,'{{ rancher_cce_cluster_name }}')]/td/input |
@@ -129,11 +129,11 @@ class TestCreateccecluster():
       # 42 | click | xpath=//button[contains(.,'Delete')] |
       self.element=self.driver.find_element(By.XPATH, "//button[contains(.,\'Delete\')]")
       ActionChains(self.driver).move_to_element(self.element).click().perform()
-      # 43 | waitForElementPresent | xpath=//tr[contains(.,'{{ rancher_cce_cluster_name }}')]/td/span[contains(.,'Removing')] | 30000
-      WebDriverWait(self.driver, 30000).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'{{ rancher_cce_cluster_name }}\')]/td/span[contains(.,\'Removing\')]")))
-      # 44 | waitForElementNotPresent | linkText={{ rancher_cce_cluster_name }} | 450000
-      WebDriverWait(self.driver, 450000).until(expected_conditions.invisibility_of_element_located((By.LINK_TEXT, "{{ rancher_cce_cluster_name }}")))
+      # 43 | waitForElementPresent | xpath=//tr[contains(.,'{{ rancher_cce_cluster_name }}')]/td/span[contains(.,'Removing')] | 30
+      WebDriverWait(self.driver, 30).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'{{ rancher_cce_cluster_name }}\')]/td/span[contains(.,\'Removing\')]")))
+      # 44 | waitForElementNotPresent | linkText={{ rancher_cce_cluster_name }} | 450
+      WebDriverWait(self.driver, 450).until(expected_conditions.invisibility_of_element_located((By.LINK_TEXT, "{{ rancher_cce_cluster_name }}")))
     except Exception as e:
       print(e)
-      self.driver.save_screenshot("screenshot.png")
+      self.driver.save_screenshot("screenshot-exception.png")
       raise

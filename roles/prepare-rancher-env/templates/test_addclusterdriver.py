@@ -71,6 +71,6 @@ class TestAddclusterdriver():
       WebDriverWait(self.driver, 30000).until(expected_conditions.presence_of_element_located((By.XPATH, "//tr[contains(.,\'Otc\')]/td/span[contains(.,\'Active\')]")))
     except Exception as e:
       print(e)
-      self.driver.save_screenshot("screenshot.png")
+      self.driver.save_screenshot("screenshot-exception.png")
       raise
 
