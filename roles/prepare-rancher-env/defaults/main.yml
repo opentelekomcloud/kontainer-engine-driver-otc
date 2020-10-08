@@ -10,6 +10,11 @@ packages:
 
 rancher_prefix: rancher-
 
+download_artifact_api: "https://zuul.eco.tsi-dev.otc-service.com/api/tenant/{{ zuul.tenant }}"
+kontainer_driver_artifact_query: "project=opentelekomcloud/kontainer-engine-driver-otc&pipeline=check&result=SUCCESS&job_name=goreleaser-build&ref={{ zuul.ref }}&patchset={{ zuul.patchset }}"
+kontainer_driver_artifact_name: "kontainer.engine"
+kontainer_driver_artifact_type: "go_binary_archive"
+
 rancher_driver_location: "https://github.com/opentelekomcloud/kontainer-engine-driver-otc/releases/download/v1.0.0-rc2/kontainer-engine-driver-otccce_1.0.0-rc2_linux_amd64.tar.gz"
 rancher_ui_location: "https://csm-assets.obs.eu-de.otc.t-systems.com/cluster-ui/component.js"
 rancher_whitelist: "*.otc.t-systems.com"

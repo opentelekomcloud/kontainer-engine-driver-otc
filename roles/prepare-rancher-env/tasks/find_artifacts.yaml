@@ -1,0 +1,30 @@
+---
+- name: Query Zuul API for artifact information
+  uri:
+    url: "{{ download_artifact_api }}/builds?{{ kontainer_driver_artifact_query }}"
+  register: build
+
+- name: Parse build response
+  set_fact:
+    build: "{{ build.json[0] }}"
+
+- name: Find Kontainer-driver archive by type and name
+  set_fact:
+    rancher_driver_location: "{{ zj_artifact.url }}"
+  loop: "{{ build.artifacts }}"
+  loop_control:
+    loop_var: zj_artifact
+  when:
+    - "'metadata' in zj_artifact"
+    - "'name' in zj_artifact"
+    - "'type' in zj_artifact.metadata"
+    - zj_artifact.name == kontainer_driver_artifact_name
+    - >
+      zj_artifact.metadata.type == kontainer_driver_artifact_type or
+       ((kontainer_driver_artifact_type | type_debug) == 'list'
+         and zj_artifact.metadata.type in kontainer_driver_artifact_type)
+
+- name: Debug found driver url
+  debug:
+    var:
+      rancher_driver_location

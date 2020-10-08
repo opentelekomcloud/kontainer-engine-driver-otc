@@ -93,6 +93,8 @@
     - ~/driver
     - ~/tests
 
+- include_tasks: find_artifacts.yaml
+
 - name: Copy Driver add test case to Filesystem
   template:
     src: "test_addclusterdriver.py"
