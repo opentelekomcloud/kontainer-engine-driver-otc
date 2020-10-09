@@ -67,11 +67,11 @@
 
 - name: start serving
   include_role:
-    name: serve_artifacts
+    name: serve-artifacts
 
 - name: try fetch kontainer-driver
   uri:
-    url: "http://localhost:8000/{{ kontainer_engine_tarball_base }}"
+    url: "http://localhost:8080/{{ kontainer_engine_tarball_base }}"
   register: res
 
 - name: debug res
