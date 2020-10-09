@@ -8,6 +8,7 @@
     vars:
       functest_project_name: "eu-de_zuul_rancher"
       rancher_image: rancher/rancher:v2.4.8
+      python_version: 3.7
       # secrets:
       # - rancher_credentials
     nodeset:
@@ -15,6 +16,7 @@
         - name: rancher
           label: ubuntu-bionic
     required-projects:
+      - opentelekomcloud/kontainer-engine-driver-otc
       - opentelekomcloud/ui-cluster-driver-otc
 
 - secret:
