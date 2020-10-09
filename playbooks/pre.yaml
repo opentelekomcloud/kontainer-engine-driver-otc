@@ -92,6 +92,10 @@
       debug:
         var: result
 
+    - name: start serving:
+      include_role:
+        name: serve_artifact
+
     - name: try fetch kontainer-driver
       uri:
         url: "http://localhost:8000/{{ kontainer_engine_tarball_base }}"
@@ -105,6 +109,5 @@
   vars:
     artifacts_folder: "{{ ansible_user_dir }}/artifacts"
   roles:
-    - serve-artifacts
       #    - prepare-rancher-env
 
