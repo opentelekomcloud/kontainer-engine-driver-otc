@@ -18,6 +18,9 @@
     - ensure-goreleaser
 
 - hosts: all
+  vars:
+    artifacts_folder: "{{ ansible_user_dir }}/artifacts"
+    goreleaser_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
   tasks:
     - name: debug projects
       debug:
@@ -28,13 +31,22 @@
         name: goreleaser
       vars:
         goreleaser_args: "--snapshot --rm-dist --skip-publish --skip-sign"
-        goreleaser_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
 
-    - name: Debug artifacts
-      debug:
-        var: zuul.artifacts
+    - name: Create artifacts folder
+      file:
+        path: "{{ artifacts_folder }}"
+        state: "directory"
+
+    - name: Place kontainer engine into artifacts
+      copy:
+        # trailing slash important
+        src: "{{ goreleaser_project_src_dir }}/dist/"
+        dest: "{{ artifacts_folder }}"
+        remote_src: true
 
 - hosts: all
+  vars:
+    artifacts_folder: "{{ ansible_user_dir }}/artifacts"
   roles:
     - serve-artifacts
     - prepare-rancher-env
