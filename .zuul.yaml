@@ -1,24 +1,24 @@
 ---
-- job:
-    name: rancher-funct
-    description: |
-      Run Functional tests of the driver on Rancher+OTC.
-    pre-run: playbooks/pre.yaml
-    run: playbooks/run.yaml
-    vars:
-      functest_project_name: "eu-de_zuul_rancher"
-      rancher_image: rancher/rancher:v2.4.8
-      python_version: 3.8
-      node_version: 10
-      # secrets:
-      # - rancher_credentials
-    nodeset:
-      nodes:
-        - name: rancher
-          label: ubuntu-focal
-    required-projects:
-      - opentelekomcloud/kontainer-engine-driver-otc
-      - opentelekomcloud/ui-cluster-driver-otc
+# - job:
+#     name: rancher-funct
+#     description: |
+#       Run Functional tests of the driver on Rancher+OTC.
+#     pre-run: playbooks/pre.yaml
+#     run: playbooks/run.yaml
+#     vars:
+#       functest_project_name: "eu-de_zuul_rancher"
+#       rancher_image: rancher/rancher:v2.4.8
+#       python_version: 3.8
+#       node_version: 10
+#       # secrets:
+#       # - rancher_credentials
+#     nodeset:
+#       nodes:
+#         - name: rancher
+#           label: ubuntu-focal
+#     required-projects:
+#       - opentelekomcloud/kontainer-engine-driver-otc
+#       - opentelekomcloud/ui-cluster-driver-otc
 
 - secret:
     name: rancher_credentials
@@ -79,11 +79,11 @@
           83ruPJ2gylcACJC6g8rqeoyKFoSz55nDj0t6Tq6+xS5oNRzS0kcKxJOUa9mYZXKfBUN3R
           MLOPkNfCzwfRBE95yF/ObO4MEj7M2xB/Dd6G30VNx3Km65V28Vkc/5DIRRU/A4=
 
-- project-template:
-    name: rancher-kontainer-integration-pti
-    check:
-      jobs:
-        - rancher-funct
+          #- project-template:
+          #    name: rancher-kontainer-integration-pti
+          #    check:
+          #      jobs:
+          #        - rancher-funct
 
 - project:
     merge-mode: squash-merge
