@@ -26,7 +26,7 @@
       include_role:
         name: goreleaser-build
       vars:
-        goreleaser_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
+        goreleaser_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
 
     - name: Debug artifacts
       debug:
