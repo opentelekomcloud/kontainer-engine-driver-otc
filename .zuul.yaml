@@ -8,7 +8,7 @@
     vars:
       functest_project_name: "eu-de_zuul_rancher"
       rancher_image: rancher/rancher:v2.4.8
-      python_version: 3.7
+      python_version: 3.8
       # secrets:
       # - rancher_credentials
     nodeset:
