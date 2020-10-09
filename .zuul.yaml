@@ -9,6 +9,7 @@
       functest_project_name: "eu-de_zuul_rancher"
       rancher_image: rancher/rancher:v2.4.8
       python_version: 3.8
+      node_version: 10
       # secrets:
       # - rancher_credentials
     nodeset:
