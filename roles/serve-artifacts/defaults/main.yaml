@@ -1,3 +1,4 @@
 ---
 serve_artifacts_base_path: "{{ zuul.project.src_dir }}/artifacts"
 serve_artifacts_bind_port: 8000
+serve_artifacts_timeout: 600

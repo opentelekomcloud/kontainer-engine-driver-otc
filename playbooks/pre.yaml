@@ -32,15 +32,26 @@
       vars:
         goreleaser_args: "--snapshot --rm-dist --skip-publish --skip-sign"
 
+    - name: Find tarballs in artifacts directory
+      find:
+        file_type: file
+        paths: "{{ goreleaser_project_src_dir }}/dist"
+        patterns: "*.tar.gz"
+      register: result
+
+    - name: Set fact for the tarball
+      set_fact:
+        kontainer_engine_tarball: "{{ result.files.0.path }}"
+
     - name: Create artifacts folder
       file:
         path: "{{ artifacts_folder }}"
         state: "directory"
 
-    - name: Place kontainer engine into artifacts
+    - name: Place kontainer engine content into artifacts
       copy:
         # trailing slash important
-        src: "{{ goreleaser_project_src_dir }}/dist/"
+        src: "{{ kontainer_engine_tarball }}"
         dest: "{{ artifacts_folder }}"
         remote_src: true
       register: res
