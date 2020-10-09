@@ -68,6 +68,8 @@
 - name: start serving
   include_role:
     name: serve-artifacts
+  vars:
+    serve_artifacts_base_path: "{{ prepare_artifacts_dir }}"
 
 - name: try fetch kontainer-driver
   uri:
