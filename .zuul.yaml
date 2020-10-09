@@ -14,7 +14,7 @@
     nodeset:
       nodes:
         - name: rancher
-          label: ubuntu-bionic
+          label: ubuntu-focal
     required-projects:
       - opentelekomcloud/kontainer-engine-driver-otc
       - opentelekomcloud/ui-cluster-driver-otc
