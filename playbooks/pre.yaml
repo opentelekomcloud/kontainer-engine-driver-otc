@@ -14,5 +14,26 @@
     - ensure-virtualenv
     - ensure-pip
     - ensure-docker
-    - prepare-rancher-env 
+    - ensure-goreleaser
+
+- hosts: all
+  tasks:
+    - name: debug projects
+      debug:
+        var: zuul.projects
+
+    - name: Build kontainer driver
+      include_role:
+        name: goreleaser-build
+      vars:
+        goreleaser_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
+
+    - name: Debug artifacts
+      debug:
+        var: zuul.artifacts
+
+- hosts: all
+  roles:
+    - serve-artifacts
+    - prepare-rancher-env
 

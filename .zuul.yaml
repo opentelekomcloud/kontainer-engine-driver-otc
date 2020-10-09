@@ -41,6 +41,8 @@
       nodes:
         - name: rancher
           label: ubuntu-bionic
+    required-projects:
+      - opentelekomcloud/ui-cluster-driver-otc
 
 - secret:
     name: rancher_credentials
