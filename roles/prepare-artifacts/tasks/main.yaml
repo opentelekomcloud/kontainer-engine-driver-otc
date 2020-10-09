@@ -1,0 +1,79 @@
+- name: Build kontainer driver
+  include_role:
+    name: goreleaser
+  vars:
+    goreleaser_args: "{{ kontainer_build_args }}"
+
+- name: Find tarballs in artifacts directory
+  find:
+    file_type: file
+    paths: "{{ kontainer_project_src_dir }}/dist"
+    patterns: "*.tar.gz"
+  register: result
+
+- name: Set fact for the tarball
+  set_fact:
+    kontainer_engine_tarball: "{{ result.files.0.path }}"
+    kontainer_engine_tarball_base: "{{ result.files.0.path | basename}}"
+
+- name: Build UI
+  include_role:
+    name: js-package-manager
+  vars:
+    zuul_work_dir: "{{ ui_project_src_dir }}"
+    js_build_command: "build"
+
+- name: Find UI dist in artifacts directory
+  find:
+    file_type: file
+    paths: "{{ ui_project_src_dir }}/dist"
+  register: result
+
+- name: Create artifacts folder
+  file:
+    path: "{{ prepare_artifacts_dir }}"
+    state: "directory"
+
+- name: Create artifacts/ui folder
+  file:
+    path: "{{ prepare_artifacts_dir }}/ui"
+    state: "directory"
+
+- name: Place kontainer engine content into artifacts
+  copy:
+    # trailing slash important
+    src: "{{ kontainer_engine_tarball }}"
+    dest: "{{ prepare_artifacts_dir }}"
+    remote_src: true
+  register: res
+
+- name: Place ui content into artifacts
+  copy:
+    # trailing slash important
+    src: "{{ ui_project_src_dir }}/dist/"
+    dest: "{{ prepare_artifacts_dir }}/ui"
+    remote_src: true
+
+- name: Find artifacts
+  find:
+    file_type: file
+    paths: "{{ prepare_artifacts_dir }}"
+    recurse: yes
+  register: result
+
+- name: debug artifacts
+  debug:
+    var: result
+
+- name: start serving
+  include_role:
+    name: serve_artifacts
+
+- name: try fetch kontainer-driver
+  uri:
+    url: "http://localhost:8000/{{ kontainer_engine_tarball_base }}"
+  register: res
+
+- name: debug res
+  debug:
+    var: res

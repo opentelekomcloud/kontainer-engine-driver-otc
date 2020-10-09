@@ -1,0 +1,7 @@
+---
+prepare_artifacts_dir: "{{ ansible_user_dir }}/artifacts"
+kontainer_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
+ui_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/ui-cluster-driver-otc'].src_dir }}"
+
+kontainer_build_args: "--snapshot --rm-dist --skip-publish --skip-sign"
+

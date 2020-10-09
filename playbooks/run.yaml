@@ -1,92 +1,13 @@
 ---
 - hosts: all
-  vars:
-    artifacts_folder: "{{ ansible_user_dir }}/artifacts"
-    kontainer_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
-    ui_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/ui-cluster-driver-otc'].src_dir }}"
   tasks:
 
-    - name: Build kontainer driver
+    - name: Prepare artifacts
       include_role:
-        name: goreleaser
+        name: prepare-artifacts
       vars:
-        goreleaser_args: "--snapshot --rm-dist --skip-publish --skip-sign"
-
-    - name: Find tarballs in artifacts directory
-      find:
-        file_type: file
-        paths: "{{ kontainer_project_src_dir }}/dist"
-        patterns: "*.tar.gz"
-      register: result
-
-    - name: Set fact for the tarball
-      set_fact:
-        kontainer_engine_tarball: "{{ result.files.0.path }}"
-        kontainer_engine_tarball_base: "{{ result.files.0.path | basename}}"
-
-    - name: Build UI
-      include_role:
-        name: js-package-manager
-      vars:
-        zuul_work_dir: "{{ ui_project_src_dir }}"
-        js_build_command: "build"
-
-    - name: Find UI dist in artifacts directory
-      find:
-        file_type: file
-        paths: "{{ ui_project_src_dir }}/dist"
-      register: result
-
-    - name: Create artifacts folder
-      file:
-        path: "{{ artifacts_folder }}"
-        state: "directory"
-
-    - name: Create artifacts/ui folder
-      file:
-        path: "{{ artifacts_folder }}/ui"
-        state: "directory"
-
-    - name: Place kontainer engine content into artifacts
-      copy:
-        # trailing slash important
-        src: "{{ kontainer_engine_tarball }}"
-        dest: "{{ artifacts_folder }}"
-        remote_src: true
-      register: res
-
-    - name: Place ui content into artifacts
-      copy:
-        # trailing slash important
-        src: "{{ ui_project_src_dir }}/dist/"
-        dest: "{{ artifacts_folder }}/ui"
-        remote_src: true
-
-    - name: Find artifacts
-      find:
-        file_type: file
-        paths: "{{ artifacts_folder }}"
-        recurse: yes
-      register: result
-
-    - name: debug artifacts
-      debug:
-        var: result
-
-    - name: start serving
-      include_role:
-        name: serve_artifact
-
-    - name: try fetch kontainer-driver
-      uri:
-        url: "http://localhost:8000/{{ kontainer_engine_tarball_base }}"
-      register: res
-
-    - name: debug res
-      debug:
-        var: res
+        prepare_artifacts_dir: "{{ ansible_user_dir }}/artifacts"
+        kontainer_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
+        ui_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/ui-cluster-driver-otc'].src_dir }}"
 
 
-- hosts: all
-  roles:
-    #- rancher-run-tests
