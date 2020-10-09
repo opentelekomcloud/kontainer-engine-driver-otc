@@ -27,6 +27,7 @@
       include_role:
         name: goreleaser
       vars:
+        goreleaser_args: "--snapshot --rm-dist --skip-publish --skip-sign"
         goreleaser_project_src_dir: "{{ ansible_user_dir }}/{{ zuul.projects['github.com/opentelekomcloud/kontainer-engine-driver-otc'].src_dir }}"
 
     - name: Debug artifacts

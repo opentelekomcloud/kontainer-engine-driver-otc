@@ -6,6 +6,7 @@
     pre-run: playbooks/pre.yaml
     run: playbooks/run.yaml
     vars:
+      functest_project_name: "eu-de_zuul_rancher"
       rancher_image: rancher/rancher:v2.4.8
       # secrets:
       # - rancher_credentials
@@ -76,7 +77,8 @@
           MLOPkNfCzwfRBE95yF/ObO4MEj7M2xB/Dd6G30VNx3Km65V28Vkc/5DIRRU/A4=
 
 - project-template:
-    name: rancher-kontainer-integration
+    name: rancher-kontainer-integration-pti
+    queue: integrated
     check:
       jobs:
         - rancher-funct
@@ -84,7 +86,7 @@
 - project:
     merge-mode: squash-merge
     templates:
-      - rancher-kontainer-integration
+      - rancher-kontainer-integration-pti
     vars:
       functest_project_name: "eu-de_zuul_rancher"
         #    check:
