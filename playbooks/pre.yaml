@@ -41,6 +41,7 @@
     - name: Set fact for the tarball
       set_fact:
         kontainer_engine_tarball: "{{ result.files.0.path }}"
+        kontainer_engine_tarball_base: "{{ result.files.0.path | basename}}"
 
     - name: Build UI
       include_role:
@@ -84,11 +85,21 @@
       find:
         file_type: file
         paths: "{{ artifacts_folder }}"
+        recurse: yes
       register: result
 
     - name: debug artifacts
       debug:
         var: result
+
+    - name: try fetch kontainer-driver
+      uri:
+        url: "http://localhost:8000/{{ kontainer_engine_tarball_base }}"
+      register: res
+
+    - name: debug res
+      debug:
+        var: res
 
 - hosts: all
   vars:
