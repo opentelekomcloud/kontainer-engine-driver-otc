@@ -73,9 +73,5 @@
 
 - name: try fetch kontainer-driver
   uri:
-    url: "http://localhost:8080/{{ kontainer_engine_tarball_base }}"
+    url: "http://{{ ansible_host }}:8080/{{ kontainer_engine_tarball_base }}"
   register: res
-
-- name: debug res
-  debug:
-    var: res
