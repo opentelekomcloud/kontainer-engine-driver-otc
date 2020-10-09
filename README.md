@@ -2,7 +2,7 @@ Kontainer Engine Driver OTC
 ===============================
 [![Go Report Card](https://goreportcard.com/badge/github.com/opentelekomcloud/kontainer-engine-driver-otc)](https://goreportcard.com/report/github.com/opentelekomcloud/kontainer-engine-driver-otc)
 ![GitHub](https://img.shields.io/github/license/opentelekomcloud/kontainer-engine-driver-otc)
-![Zuul Gate](https://zuul.eco.tsi-dev.otc-service.com/api/tenant/eco/badge?project=opentelekomcloud/kontainer-engine-driver-otc&pipeline=check&branch=master)
+[![Zuul Gate](https://zuul.eco.tsi-dev.otc-service.com/api/tenant/eco/badge?project=opentelekomcloud/kontainer-engine-driver-otc&pipeline=check&branch=master)](https://zuul.eco.tsi-dev.otc-service.com/t/eco/builds?project=opentelekomcloud%2Fkontainer-engine-driver-otc)
 ![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/opentelekomcloud/kontainer-engine-driver-otc?include_prereleases)
 
 This repo contains the OTC CCE(Open Telekom Cloud Container Engine) driver for the rancher server.
