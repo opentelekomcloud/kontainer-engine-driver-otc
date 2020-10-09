@@ -14,6 +14,7 @@
     - ensure-virtualenv
     - ensure-pip
     - ensure-docker
+    - ensure-go
     - ensure-goreleaser
 
 - hosts: all
