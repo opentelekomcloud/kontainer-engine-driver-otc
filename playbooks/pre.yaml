@@ -43,6 +43,21 @@
         src: "{{ goreleaser_project_src_dir }}/dist/"
         dest: "{{ artifacts_folder }}"
         remote_src: true
+      register: res
+
+    - name: debug res
+      debug:
+        var: res
+
+    - name: Find tarballs in artifacts directory
+      find:
+        file_type: file
+        paths: "{{ artifacts_folder }}"
+      register: result
+
+    - name: debug artifacts
+      debug:
+        var: result
 
 - hosts: all
   vars:

@@ -1,7 +1,7 @@
 ---
 - name: Start web server
   command:
-    "python3 -m http.server {{ serve_artifact_bind_port }} --directory {{ server_artifact_base_path }}"
+    "python3 -m http.server {{ serve_artifacts_bind_port }} --directory {{ serve_artifacts_base_path }}"
   # Fire and forget for __timeout__ seconds
   async: "{{ server_artifact_timeout }}"
   poll: 0
