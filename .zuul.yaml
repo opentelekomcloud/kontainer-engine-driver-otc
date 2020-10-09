@@ -1,32 +1,4 @@
 ---
-- project:
-    merge-mode: squash-merge
-    templates:
-      - rancher-kontainer-integration
-    vars:
-      functest_project_name: "eu-de_zuul_rancher"
-        #    check:
-        #      jobs:
-        #        - golangci-lint
-        #        - golang-make-functional
-        #        - golang-make-vet
-        #        - goreleaser-build
-        #    gate:
-        #      jobs:
-        #        - golangci-lint
-        #        - golang-make-vet
-        #        - golang-make-functional
-        #        - goreleaser-build
-        #    tag:
-        #      jobs:
-        #        - release-goreleaser
-
-- project-template:
-    name: rancher-kontainer-integration
-    check:
-      jobs:
-        - rancher-funct
-
 - job:
     name: rancher-funct
     description: |
@@ -102,3 +74,32 @@
           nm0fbgY55ye0RnwnmKdKclwYCc9Uck3QtattMuRvgxSNEtqa3jcRgluw6hj/OwwoOVrsy
           83ruPJ2gylcACJC6g8rqeoyKFoSz55nDj0t6Tq6+xS5oNRzS0kcKxJOUa9mYZXKfBUN3R
           MLOPkNfCzwfRBE95yF/ObO4MEj7M2xB/Dd6G30VNx3Km65V28Vkc/5DIRRU/A4=
+
+- project-template:
+    name: rancher-kontainer-integration
+    check:
+      jobs:
+        - rancher-funct
+
+- project:
+    merge-mode: squash-merge
+    templates:
+      - rancher-kontainer-integration
+    vars:
+      functest_project_name: "eu-de_zuul_rancher"
+        #    check:
+        #      jobs:
+        #        - golangci-lint
+        #        - golang-make-functional
+        #        - golang-make-vet
+        #        - goreleaser-build
+        #    gate:
+        #      jobs:
+        #        - golangci-lint
+        #        - golang-make-vet
+        #        - golang-make-functional
+        #        - goreleaser-build
+        #    tag:
+        #      jobs:
+        #        - release-goreleaser
+
