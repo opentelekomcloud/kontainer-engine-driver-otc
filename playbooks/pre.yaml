@@ -92,7 +92,7 @@
       debug:
         var: result
 
-    - name: start serving:
+    - name: start serving
       include_role:
         name: serve_artifact
 
