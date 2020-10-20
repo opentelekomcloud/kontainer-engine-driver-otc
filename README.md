@@ -5,7 +5,7 @@ Kontainer Engine Driver OTC
 [![Zuul Gate](https://zuul.eco.tsi-dev.otc-service.com/api/tenant/eco/badge?project=opentelekomcloud/kontainer-engine-driver-otc&pipeline=check&branch=master)](https://zuul.eco.tsi-dev.otc-service.com/t/eco/builds?project=opentelekomcloud%2Fkontainer-engine-driver-otc)
 ![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/opentelekomcloud/kontainer-engine-driver-otc?include_prereleases)
 
-This repo contains the OTC CCE(Open Telekom Cloud Container Engine) driver for the rancher server.
+This repo contains the Open Telekom Cloud CCE driver for the rancher server.
 
 ## Building
 
@@ -21,12 +21,13 @@ release and can be downloaded from one of those URLs directly.
 ## Running
 
 1. Go to the `Cluster Drivers` management screen in Rancher and click `Add Cluster Driver`.
-2. Enter Download URL `https://github.com/opentelekomcloud/kontainer-engine-driver-otc/releases/download/VERSION/kontainer-engine-driver-otc-VERSION-linux-amd64.tgz`
-3. Enter the Custom UI URL with value `https://otc-rancher.obs.eu-de.otc.t-systems.com/cluster/ui/latest/component.js`.
+2. Enter Download URL:
+    1) Using exact version: `https://github.com/opentelekomcloud/kontainer-engine-driver-otc/releases/download/VERSION/kontainer-engine-driver-otc-VERSION-linux-amd64.tgz`
+    2) Using latest version: `https://otc-rancher.obs.eu-de.otc.t-systems.com/cluster/driver/latest/kontainer-engine-driver-otccce_linux_amd64.tar.gz`
+3. Enter the Custom UI URL: `https://otc-rancher.obs.eu-de.otc.t-systems.com/cluster/ui/latest/component.js`.
 4. Add Whitelist Domains with value `*.otc.t-systems.com`.
 5. Click `Create`, and wait for driver status to be `Active`.
 6. Cluster driver for OpenTelekomCloud CCE service will be available to use on the `Add Cluster` screen.
-
 
 ## License
 
