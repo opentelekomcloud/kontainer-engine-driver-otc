@@ -4,12 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/opentelekomcloud-infra/crutch-house/services"
 	"github.com/opentelekomcloud-infra/crutch-house/utils"
 	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
-	"github.com/sirupsen/logrus"
-
-	"github.com/opentelekomcloud-infra/crutch-house/services"
+	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/nodes"
 	"github.com/rancher/kontainer-engine/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,7 +35,7 @@ func getDriverOpts(t *testing.T) *types.DriverOptions {
 	opts, err := openstack.AuthOptionsFromInfo(&cloud.AuthInfo, cloud.AuthType)
 	require.NoError(t, err)
 	canonicalOpts, ok := opts.(golangsdk.AuthOptions)
-	require.True(t, ok)
+	require.True(t, ok, "Incorrect auth options provided")
 	stringOptions := map[string]string{
 		"token":                canonicalOpts.TokenID,
 		"authenticationMode":   "rbac",
@@ -92,7 +91,7 @@ func GetNewIntOpts() map[string]int64 {
 		"clusterEipBandwidthSize": 10,
 		"dataVolumeSize":          100,
 		"rootVolumeSize":          40,
-		"nodeCount":               defaultNodeCount + 1,
+		"nodeCount":               defaultNodeCount,
 		"appPort":                 80,
 	}
 	return intOptions
@@ -112,6 +111,49 @@ func computeClient(t *testing.T) services.Client {
 	return client
 }
 
+func getRealClusterState(t *testing.T, info *types.ClusterInfo) clusterState {
+	state, err := infoToState(info)
+	if err != nil {
+		t.Errorf("error getting cluster info: %s", err)
+	}
+	client, err := getClient(state)
+	if err != nil {
+		t.Errorf("error creating CCE client: %s", err)
+	}
+
+	cluster, err := client.GetCluster(state.ClusterID)
+	if err != nil {
+		t.Errorf("error retrieving cluster info: %s", err)
+	}
+
+	cceClient, err := client.NewServiceClient("cce")
+	if err != nil {
+		t.Errorf("error creating new CCE client: %s", err)
+	}
+	nodeList, err := nodes.List(cceClient, cluster.Metadata.Id, nodes.ListOpts{})
+	if err != nil {
+		t.Errorf("error listing CCE nodes: %s", err)
+	}
+	nodeIDs := make([]string, len(nodeList))
+	for i, node := range nodeList {
+		nodeIDs[i] = node.Metadata.Id
+	}
+
+	return clusterState{
+		ClusterID:            state.ClusterID,
+		ClusterType:          cluster.Spec.Type,
+		ClusterFlavor:        cluster.Spec.Flavor,
+		ContainerNetworkMode: cluster.Spec.ContainerNetwork.Mode,
+		ContainerNetworkCidr: cluster.Spec.ContainerNetwork.Cidr,
+		VpcID:                cluster.Spec.HostNetwork.VpcId,
+		SubnetID:             cluster.Spec.HostNetwork.SubnetId,
+		HighwaySubnetID:      cluster.Spec.HostNetwork.HighwaySubnet,
+		ClusterFloatingIP:    cluster.Spec.PublicIP,
+		NodeConfig:           services.CreateNodesOpts{},
+		NodeIDs:              nodeIDs,
+	}
+}
+
 func TestDriver_ClusterWorkflow(t *testing.T) {
 	driverOptions := getDriverOpts(t)
 
@@ -127,22 +169,36 @@ func TestDriver_ClusterWorkflow(t *testing.T) {
 	driver := NewDriver()
 	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
 	require.NoError(t, err)
+	t.Log("Cluster created")
 
 	info, err = driver.PostCheck(ctx, info)
 	assert.NoError(t, err)
+	t.Log("Post Check done")
 
 	newDriverOptions := getDriverOpts(t)
 	newDriverOptions.IntOptions = GetNewIntOpts()
 
-	logrus.Info("Update cluster by adding 1 node")
+	t.Log("Update cluster by adding 3 nodes")
+	newCount := int64(defaultNodeCount + 3)
+	newDriverOptions.IntOptions["nodeCount"] = newCount
 	info, err = driver.Update(ctx, info, newDriverOptions)
 	assert.NoError(t, err)
+	assert.EqualValues(t, newCount, info.NodeCount)
+	realState := getRealClusterState(t, info)
+	assert.EqualValues(t, newCount, len(realState.NodeIDs))
+	t.Log("Resize is done: +3")
 
-	logrus.Info("Update cluster by decreasing 2 nodes")
-	newDriverOptions.IntOptions["nodeCount"] = defaultNodeCount - 1
+	t.Log("Update cluster by decreasing 2 nodes")
+	newCount -= 2
+	newDriverOptions.IntOptions["nodeCount"] = newCount
 	info, err = driver.Update(ctx, info, newDriverOptions)
 	assert.NoError(t, err)
+	assert.EqualValues(t, newCount, info.NodeCount)
+	realState = getRealClusterState(t, info)
+	assert.EqualValues(t, newCount, len(realState.NodeIDs))
+	t.Log("Resize is done: -2")
 
+	t.Log("Start cluster removal")
 	err = driver.Remove(ctx, info)
 	assert.NoError(t, err)
 }

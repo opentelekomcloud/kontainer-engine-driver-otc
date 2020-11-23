@@ -58,7 +58,6 @@ type managedResources struct {
 }
 
 type clusterState struct {
-	types.ClusterInfo
 	ClusterID             string
 	AuthInfo              openstack.AuthInfo
 	ClusterName           string
@@ -361,15 +360,11 @@ func optsToString(opts *types.DriverOptions) string {
 	return fmt.Sprintf("%v", opts2)
 }
 
-func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
+func optsToState(opts *types.DriverOptions) (*clusterState, error) {
 	logrus.Info("Start setting state from provided opts: \n", optsToString(opts))
 	strOpt, strSliceOpt, intOpt, boolOpt := getters(opts)
 	projectName := strOpt("project-name", "projectName")
 	state := &clusterState{
-		ClusterInfo: types.ClusterInfo{
-			Version:   strOpt("cluster-version", "clusterVersion"),
-			NodeCount: intOpt("node-count", "nodeCount"),
-		},
 		AuthInfo: openstack.AuthInfo{
 			AuthURL:     authURL,
 			Token:       strOpt("token"),
@@ -438,32 +433,27 @@ func stateFromOpts(opts *types.DriverOptions) (*clusterState, error) {
 }
 
 // Load state from in ClusterInfo Metadata
-func stateFromInfo(info *types.ClusterInfo) (*clusterState, error) {
+func infoToState(info *types.ClusterInfo) (*clusterState, error) {
 	state := &clusterState{}
-
 	err := json.Unmarshal([]byte(info.Metadata["state"]), state)
 	if err != nil {
-		logrus.Errorf("Error encountered while marshalling state: %v", err)
+		logrus.WithError(err).Error("error encountered while marshalling state")
 	}
-
 	return state, err
 }
 
-// Save state to ClusterInfo Metadata
-func stateToInfo(info *types.ClusterInfo, state clusterState) error {
+// Save state to ClusterInfo Metadata. Update `info` in-place
+func stateToInfo(state *clusterState, info *types.ClusterInfo) (*types.ClusterInfo, error) {
 	data, err := json.Marshal(state)
-
 	if err != nil {
-		return err
+		return info, err
 	}
-
 	if info.Metadata == nil {
 		info.Metadata = map[string]string{}
 	}
-
 	info.Metadata["state"] = string(data)
 
-	return nil
+	return info, nil
 }
 
 func setupNetwork(client services.Client, state *clusterState) error {
@@ -527,15 +517,18 @@ func setupNetwork(client services.Client, state *clusterState) error {
 	return nil
 }
 
-func createCluster(client services.Client, state *clusterState) error {
+func createCluster(client services.Client, state *clusterState, opts *types.DriverOptions) error {
 	var nodeIPs []string
 	var nodeIDs []string
 	var clusterID string
+	nodeCount := opts.IntOptions["nodeCount"]
+	version := opts.StringOptions["clusterVersion"]
+
 	cluster, err := client.CreateCluster(&services.CreateClusterOpts{
 		Name:            state.ClusterName,
 		Description:     state.Description,
 		ClusterType:     state.ClusterType,
-		ClusterVersion:  state.Version,
+		ClusterVersion:  version,
 		FlavorID:        state.ClusterFlavor,
 		VpcID:           state.VpcID,
 		SubnetID:        state.SubnetID,
@@ -555,7 +548,7 @@ func createCluster(client services.Client, state *clusterState) error {
 	state.ClusterID = clusterID
 	state.NodeConfig.ClusterID = clusterID
 
-	nodeIDs, err = client.CreateNodes(&state.NodeConfig, int(state.NodeCount))
+	nodeIDs, err = client.CreateNodes(&state.NodeConfig, int(nodeCount))
 	if err != nil {
 		return fmt.Errorf("failed to create nodes: %s", err)
 	}
@@ -631,24 +624,19 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 	return nil
 }
 
-func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (clusterInfo *types.ClusterInfo, err error) {
+func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (*types.ClusterInfo, error) {
 	logrus.Info("Start creating cluster")
 	logrus.Debug("Get state from opts")
-	state, err := stateFromOpts(opts)
+	state, err := optsToState(opts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error setting opts to cluster state: %s", err)
 	}
-
-	info := &types.ClusterInfo{}
-	defer func() {
-		logrus.WithError(storeState(info, state))
-	}()
 	client, err := getClient(state)
 	if err != nil {
 		return nil, err
 	}
-	token, _ := client.Token() // error can only be because of auth
-	state.ServiceAccountToken = token
+	token, _ := client.Token() // error can only during auth
+	info.ServiceAccountToken = token
 
 	state.ManagedResources = managedResources{}
 	defer func() {
@@ -662,41 +650,38 @@ func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, _ *type
 		return nil, fmt.Errorf("failed to setup network: %s", err)
 	}
 
-	if err := createCluster(client, state); err != nil {
+	if err := createCluster(client, state, opts); err != nil {
 		return nil, fmt.Errorf("failed to create cluster: %s", err)
 	}
+	info.NodeCount = opts.IntOptions["nodeCount"]
+	info.Version = opts.StringOptions["clusterVersion"]
 
 	logrus.Info("Cluster creation finished")
-	return info, stateToInfo(info, *state)
+	return stateToInfo(state, info)
 }
 
 // Update changes existing cluster. `clusterInfo` represents current state, `updateOpts` are newly applied flags
 func (d *CCEDriver) Update(_ context.Context, info *types.ClusterInfo, updateOpts *types.DriverOptions) (*types.ClusterInfo, error) {
 	var err error
-	defer func() {
-		if err != nil {
-			logrus.WithError(err).Info("update return error")
-		}
-	}()
 	logrus.Info("Starting update")
-	state, err := stateFromInfo(info)
+	state, err := infoToState(info)
 	if err != nil {
 		return nil, err
 	}
 
-	newState, err := stateFromOpts(updateOpts)
+	newState, err := optsToState(updateOpts)
 	if err != nil {
 		return nil, err
 	}
 	newState.ClusterID = state.ClusterID
 
-	if newState.NodeCount != state.NodeCount {
-		tmpState, err := d.resizeCluster(info, newState.NodeCount)
+	newCount := updateOpts.IntOptions["nodeCount"]
+	if newCount != info.NodeCount {
+		tmpState, err := d.resizeCluster(info, newCount)
 		if err != nil {
 			return nil, err
 		}
 		state.NodeIDs = tmpState.NodeIDs
-		state.NodeCount = newState.NodeCount
 	}
 
 	if newState.Description != state.Description {
@@ -711,12 +696,12 @@ func (d *CCEDriver) Update(_ context.Context, info *types.ClusterInfo, updateOpt
 		state.Description = newState.Description
 	}
 
-	logrus.Info("update cluster success")
-	return info, stateToInfo(info, *state)
+	logrus.Info("Update cluster success")
+	return stateToInfo(state, info)
 }
 
 func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
-	state, err := stateFromInfo(clusterInfo)
+	state, err := infoToState(clusterInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -750,8 +735,6 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 			clusterInfo.Endpoint = cluster.Cluster.Server
 		}
 	}
-
-	state.Endpoint = clusterInfo.Endpoint
 
 	clusterInfo.Status = cluster.Status.Phase
 	clusterInfo.ClientKey = cert.Users[0].User.ClientKeyData
@@ -792,7 +775,7 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 
 func (d *CCEDriver) Remove(_ context.Context, clusterInfo *types.ClusterInfo) error {
 	logrus.Info("Get state from info")
-	state, err := stateFromInfo(clusterInfo)
+	state, err := infoToState(clusterInfo)
 	if err != nil {
 		return err
 	}
@@ -813,11 +796,7 @@ func (d *CCEDriver) Remove(_ context.Context, clusterInfo *types.ClusterInfo) er
 }
 
 func (d *CCEDriver) GetVersion(_ context.Context, info *types.ClusterInfo) (*types.KubernetesVersion, error) {
-	state, err := stateFromInfo(info)
-	if err != nil {
-		return nil, err
-	}
-	return &types.KubernetesVersion{Version: state.Version}, nil
+	return &types.KubernetesVersion{Version: info.Version}, nil
 }
 
 func (d *CCEDriver) SetVersion(context.Context, *types.ClusterInfo, *types.KubernetesVersion) error {
@@ -825,15 +804,12 @@ func (d *CCEDriver) SetVersion(context.Context, *types.ClusterInfo, *types.Kuber
 }
 
 func (d *CCEDriver) GetClusterSize(_ context.Context, info *types.ClusterInfo) (*types.NodeCount, error) {
-	state, err := stateFromInfo(info)
-	if err != nil {
-		return nil, err
-	}
-	return &types.NodeCount{Count: state.NodeCount}, nil
+	return &types.NodeCount{Count: info.NodeCount}, nil
 }
 
+// resizeCluster update nodes, creating or removing nodes. `info.NodeCount` is updated inside
 func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*clusterState, error) {
-	state, err := stateFromInfo(info)
+	state, err := infoToState(info)
 	if err != nil {
 		return nil, err
 	}
@@ -841,12 +817,13 @@ func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*clus
 	if err != nil {
 		return nil, err
 	}
-	delta := newSize - state.NodeCount
+	delta := newSize - info.NodeCount
 	logrus.Info("Start setting cluster size")
 	if delta == 0 {
 		return state, nil
 	}
 	if delta > 0 {
+		logrus.Infof("Will create %d new nodes", delta)
 		state.NodeConfig.ClusterID = state.ClusterID
 		newNodes, err := client.CreateNodes(&state.NodeConfig, int(delta))
 		if err != nil {
@@ -854,6 +831,7 @@ func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*clus
 		}
 		state.NodeIDs = append(state.NodeIDs, newNodes...)
 	} else {
+		logrus.Infof("Will remove %d nodes", -delta)
 		nodesToDelete := state.NodeIDs[newSize:]
 		err := client.DeleteNodes(state.ClusterID, nodesToDelete)
 		if err != nil {
@@ -861,10 +839,10 @@ func (d *CCEDriver) resizeCluster(info *types.ClusterInfo, newSize int64) (*clus
 		}
 		state.NodeIDs = state.NodeIDs[:newSize]
 	}
-	if len(state.NodeIDs) != int(newSize) {
-		return nil, fmt.Errorf("resize failed: expected %v items in %v", newSize, state.NodeIDs)
+	info.NodeCount = int64(len(state.NodeIDs))
+	if info.NodeCount != newSize {
+		return nil, fmt.Errorf("resize failed: expected %d items, got %d in %v", newSize, len(state.NodeIDs), state.NodeIDs)
 	}
-	state.NodeCount = newSize
 	logrus.Infof("Setting cluster size to %v finished", newSize)
 	return state, nil
 }
@@ -948,16 +926,4 @@ func NewDriver() types.Driver {
 	driver.driverCapabilities.AddCapability(types.SetClusterSizeCapability)
 
 	return driver
-}
-
-func storeState(info *types.ClusterInfo, state *clusterState) error {
-	bytes, err := json.Marshal(state)
-	if err != nil {
-		return err
-	}
-	if info.Metadata == nil {
-		info.Metadata = map[string]string{}
-	}
-	info.Metadata["state"] = string(bytes)
-	return nil
 }

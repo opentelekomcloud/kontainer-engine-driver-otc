@@ -28,7 +28,7 @@ vet:
 
 acceptance:
 	@echo "Starting acceptance tests..."
-	@go test ./... -race -covermode=atomic -coverprofile=coverage.txt -timeout 20m -v
+	@go test -race -timeout 40m -v github.com/opentelekomcloud/kontainer-engine-driver-otc/opentelekomcloud
 
 build: build-linux
 
