@@ -131,6 +131,9 @@ func getRealClusterState(t *testing.T, info *types.ClusterInfo) clusterState {
 		t.Errorf("error creating new CCE client: %s", err)
 	}
 	nodeList, err := nodes.List(cceClient, cluster.Metadata.Id, nodes.ListOpts{})
+	if err != nil {
+		t.Errorf("error listing CCE nodes: %s", err)
+	}
 	nodeIDs := make([]string, len(nodeList))
 	for i, node := range nodeList {
 		nodeIDs[i] = node.Metadata.Id
