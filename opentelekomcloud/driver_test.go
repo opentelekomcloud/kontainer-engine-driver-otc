@@ -167,7 +167,7 @@ func TestDriver_ClusterWorkflow(t *testing.T) {
 	}()
 
 	driver := NewDriver()
-	info, err := driver.Create(ctx, driverOptions, &types.ClusterInfo{})
+	info, err := driver.Create(ctx, driverOptions, nil)
 	require.NoError(t, err)
 	t.Log("Cluster created")
 

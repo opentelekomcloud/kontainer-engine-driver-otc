@@ -626,6 +626,10 @@ func cleanupManagedResources(client services.Client, state *clusterState) error 
 
 func (d *CCEDriver) Create(_ context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (*types.ClusterInfo, error) {
 	logrus.Info("Start creating cluster")
+	if info == nil {
+		logrus.Debug("Info is nil, initialize info")
+		info = &types.ClusterInfo{}
+	}
 	logrus.Debug("Get state from opts")
 	state, err := optsToState(opts)
 	if err != nil {
