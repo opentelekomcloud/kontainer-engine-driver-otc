@@ -30,6 +30,7 @@ const (
 var (
 	authURL         = fmt.Sprintf("https://iam.eu-de.%s/v3", baseServiceURL)
 	clusterVersions = []string{
+		"v1.17.9-r0",
 		"v1.15.6-r1",
 		"v1.13.10-r0",
 	}
@@ -40,12 +41,6 @@ var (
 		"cce.s2.small",
 		"cce.s2.medium",
 		"cce.s2.large",
-		"cce.t1.small",
-		"cce.t1.medium",
-		"cce.t1.large",
-		"cce.t2.small",
-		"cce.t2.medium",
-		"cce.t2.large",
 	}
 )
 
@@ -153,7 +148,7 @@ func (d *CCEDriver) GetDriverCreateOptions(context.Context) (*types.DriverFlags,
 			// cluster general settings
 			"cluster-type": {
 				Type:  types.StringType,
-				Usage: "Type of the cluster, 'VirtualMachine' or 'BareMetal'",
+				Usage: "Type of the cluster, should be 'VirtualMachine' (Hybrid)",
 				Default: &types.Default{
 					DefaultString: "VirtualMachine",
 				},
