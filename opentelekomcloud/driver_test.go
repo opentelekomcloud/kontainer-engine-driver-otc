@@ -97,7 +97,7 @@ func GetNewIntOpts() map[string]int64 {
 	return intOptions
 }
 
-func authClient(t *testing.T) services.Client {
+func authClient(t *testing.T) *services.Client {
 	client, err := services.NewClient("OS_")
 	require.NoError(t, err, "failed to initialize client")
 	err = client.Authenticate()
@@ -105,7 +105,7 @@ func authClient(t *testing.T) services.Client {
 	return client
 }
 
-func computeClient(t *testing.T) services.Client {
+func computeClient(t *testing.T) *services.Client {
 	client := authClient(t)
 	require.NoError(t, client.InitCompute())
 	return client

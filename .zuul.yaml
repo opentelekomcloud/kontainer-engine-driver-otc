@@ -2,7 +2,7 @@
 - project:
     merge-mode: squash-merge
     vars:
-      functest_project_name: "eu-de_zuul_go"
+      functest_project_name: "eu-de_zuul_tf"
     check:
       jobs:
         - otc-golangci-lint

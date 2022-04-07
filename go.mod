@@ -6,11 +6,11 @@ replace k8s.io/client-go => k8s.io/client-go v0.20.15
 
 require (
 	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
-	github.com/opentelekomcloud-infra/crutch-house v0.2.4-0.20201120120921-faec6632f2ed
-	github.com/opentelekomcloud/gophertelekomcloud v0.1.1-0.20201120102720-b72395887513
+	github.com/opentelekomcloud-infra/crutch-house v0.3.1-0.20210603122459-e3244e488cf2
+	github.com/opentelekomcloud/gophertelekomcloud v0.4.1
 	github.com/rancher/kontainer-engine v0.0.4-dev.0.20200406202044-bf3f55d3710a
 	github.com/sirupsen/logrus v1.7.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	k8s.io/client-go v12.0.0+incompatible
 )
 
@@ -42,11 +42,12 @@ require (
 	github.com/rancher/rke v1.1.0-rc9.0.20200327175519-ecc629f2c3d5 // indirect
 	github.com/rancher/types v0.0.0-20200326224235-0d1e1dcc8d55 // indirect
 	github.com/rancher/wrangler v0.5.4-0.20200326191509-4054411d9736 // indirect
-	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
 	golang.org/x/sys v0.0.0-20201112073958-5cba982894dd // indirect
+	golang.org/x/term v0.0.0-20201117132131-f5c789dd3221 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	google.golang.org/appengine v1.6.5 // indirect

@@ -451,7 +451,7 @@ func stateToInfo(state *clusterState, info *types.ClusterInfo) (*types.ClusterIn
 	return info, nil
 }
 
-func setupNetwork(client services.Client, state *clusterState) error {
+func setupNetwork(client *services.Client, state *clusterState) error {
 	logrus.Debug("Setup network process started")
 	if state.VpcID == "" && state.VpcName != "" {
 		vpcID, err := client.FindVPC(state.VpcName)
@@ -512,7 +512,7 @@ func setupNetwork(client services.Client, state *clusterState) error {
 	return nil
 }
 
-func createCluster(client services.Client, state *clusterState, opts *types.DriverOptions) error {
+func createCluster(client *services.Client, state *clusterState, opts *types.DriverOptions) error {
 	var nodeIPs []string
 	var nodeIDs []string
 	var clusterID string
@@ -559,7 +559,7 @@ func createCluster(client services.Client, state *clusterState, opts *types.Driv
 	return nil
 }
 
-func getClient(state *clusterState) (client services.Client, err error) {
+func getClient(state *clusterState) (client *services.Client, err error) {
 	client = services.NewCloudClient(&openstack.Cloud{
 		AuthInfo:     state.AuthInfo,
 		RegionName:   state.Region,
@@ -583,7 +583,7 @@ func getClient(state *clusterState) (client services.Client, err error) {
 	return client, nil
 }
 
-func cleanupManagedResources(client services.Client, state *clusterState) error {
+func cleanupManagedResources(client *services.Client, state *clusterState) error {
 	logrus.Debug("Cleanup process started")
 	resources := state.ManagedResources
 
