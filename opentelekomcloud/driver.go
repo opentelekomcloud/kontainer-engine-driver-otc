@@ -757,7 +757,7 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 			logrus.WithError(err).Warnf("error creating service account")
 			if failureCount < retries {
 				logrus.Infof("service account token generation failed, retries left: %v", retries-failureCount)
-				failureCount = failureCount + 1
+				failureCount++
 
 				time.Sleep(pollInterval * time.Second)
 			} else {
