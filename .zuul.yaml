@@ -5,12 +5,12 @@
       functest_project_name: "eu-de_zuul_go"
     check:
       jobs:
-        - golangci-lint
+        - otc-golangci-lint
         - golang-make-vet
         - goreleaser-build
     gate:
       jobs:
-        - golangci-lint
+        - otc-golangci-lint
         - golang-make-vet
         - golang-make-functional
         - goreleaser-build
