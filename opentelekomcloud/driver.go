@@ -10,7 +10,7 @@ import (
 
 	"github.com/getlantern/deepcopy"
 	"github.com/opentelekomcloud-infra/crutch-house/services"
-	"github.com/opentelekomcloud/gophertelekomcloud"
+	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/clusters"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/nodes"
@@ -30,9 +30,8 @@ const (
 var (
 	authURL         = fmt.Sprintf("https://iam.eu-de.%s/v3", baseServiceURL)
 	clusterVersions = []string{
+		"v1.19.10-r0",
 		"v1.17.9-r0",
-		"v1.15.6-r1",
-		"v1.13.10-r0",
 	}
 	clusterFlavors = []string{
 		"cce.s1.small",
@@ -41,6 +40,7 @@ var (
 		"cce.s2.small",
 		"cce.s2.medium",
 		"cce.s2.large",
+		"cce.s2.xlarge",
 	}
 )
 
@@ -451,7 +451,7 @@ func stateToInfo(state *clusterState, info *types.ClusterInfo) (*types.ClusterIn
 	return info, nil
 }
 
-func setupNetwork(client services.Client, state *clusterState) error {
+func setupNetwork(client *services.Client, state *clusterState) error {
 	logrus.Debug("Setup network process started")
 	if state.VpcID == "" && state.VpcName != "" {
 		vpcID, err := client.FindVPC(state.VpcName)
@@ -512,7 +512,7 @@ func setupNetwork(client services.Client, state *clusterState) error {
 	return nil
 }
 
-func createCluster(client services.Client, state *clusterState, opts *types.DriverOptions) error {
+func createCluster(client *services.Client, state *clusterState, opts *types.DriverOptions) error {
 	var nodeIPs []string
 	var nodeIDs []string
 	var clusterID string
@@ -559,7 +559,7 @@ func createCluster(client services.Client, state *clusterState, opts *types.Driv
 	return nil
 }
 
-func getClient(state *clusterState) (client services.Client, err error) {
+func getClient(state *clusterState) (client *services.Client, err error) {
 	client = services.NewCloudClient(&openstack.Cloud{
 		AuthInfo:     state.AuthInfo,
 		RegionName:   state.Region,
@@ -583,7 +583,7 @@ func getClient(state *clusterState) (client services.Client, err error) {
 	return client, nil
 }
 
-func cleanupManagedResources(client services.Client, state *clusterState) error {
+func cleanupManagedResources(client *services.Client, state *clusterState) error {
 	logrus.Debug("Cleanup process started")
 	resources := state.ManagedResources
 
@@ -757,7 +757,7 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 			logrus.WithError(err).Warnf("error creating service account")
 			if failureCount < retries {
 				logrus.Infof("service account token generation failed, retries left: %v", retries-failureCount)
-				failureCount = failureCount + 1
+				failureCount++
 
 				time.Sleep(pollInterval * time.Second)
 			} else {
