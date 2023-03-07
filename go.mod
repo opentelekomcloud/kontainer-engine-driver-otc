@@ -40,7 +40,7 @@ require (
 	github.com/rancher/norman v0.0.0-20200326201949-eb806263e8ad // indirect
 	github.com/rancher/rke v1.1.0-rc9.0.20200327175519-ecc629f2c3d5 // indirect
 	github.com/rancher/types v0.0.0-20200326224235-0d1e1dcc8d55 // indirect
-	github.com/rancher/wrangler v0.5.4-0.20200326191509-4054411d9736 // indirect
+	github.com/rancher/wrangler v0.7.4-security1 // indirect
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
