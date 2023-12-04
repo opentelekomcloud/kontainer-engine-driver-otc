@@ -30,8 +30,8 @@ const (
 var (
 	authURL         = fmt.Sprintf("https://iam.eu-de.%s/v3", baseServiceURL)
 	clusterVersions = []string{
-		"v1.19.10-r0",
-		"v1.17.9-r0",
+		"v1.23",
+		"v1.25",
 	}
 	clusterFlavors = []string{
 		"cce.s1.small",
@@ -748,7 +748,7 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 	failureCount := 0
 
 	for {
-		clusterInfo.ServiceAccountToken, err = util.GenerateServiceAccountToken(clientSet)
+		clusterInfo.ServiceAccountToken, err = generateServiceAccountToken(clientSet)
 
 		if err == nil {
 			logrus.Info("service account token generated successfully")
