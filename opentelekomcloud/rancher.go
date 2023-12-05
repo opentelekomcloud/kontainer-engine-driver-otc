@@ -14,12 +14,10 @@ import (
 )
 
 const (
-	defaultNamespace          = "default"
+	cattleSecretName          = "cattle-secret"
 	cattleNamespace           = "cattle-system"
 	clusterAdmin              = "cluster-admin"
-	netesDefault              = "netes-default"
 	kontainerEngine           = "kontainer-engine"
-	oldClusterRoleBindingName = "netes-default-clusterRoleBinding"
 	newClusterRoleBindingName = "system-netes-default-clusterRoleBinding"
 )
 
@@ -38,9 +36,16 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 		ObjectMeta: metav1.ObjectMeta{
 			Name: kontainerEngine,
 		},
+		Secrets: []v1.ObjectReference{
+			{
+				Kind:      "Secret",
+				Namespace: cattleNamespace,
+				Name:      cattleSecretName,
+			},
+		},
 	}
 
-	_, err = clientset.CoreV1().ServiceAccounts(cattleNamespace).Create(context.TODO(), serviceAccount, metav1.CreateOptions{})
+	serviceAccount, err = clientset.CoreV1().ServiceAccounts(cattleNamespace).Create(context.TODO(), serviceAccount, metav1.CreateOptions{})
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return "", fmt.Errorf("error creating service account: %v", err)
 	}
@@ -78,7 +83,6 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 				Kind:      "ServiceAccount",
 				Name:      serviceAccount.Name,
 				Namespace: cattleNamespace,
-				APIGroup:  v1.GroupName,
 			},
 		},
 		RoleRef: rbacV1.RoleRef{
@@ -91,16 +95,32 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 		return "", fmt.Errorf("error creating role bindings: %v", err)
 	}
 
+	tokenSecret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cattleSecretName,
+			Namespace: cattleNamespace,
+			Annotations: map[string]string{
+				"kubernetes.io/service-account.name": kontainerEngine,
+				"kubernetes.io/service-account.uid":  string(serviceAccount.UID),
+			},
+		},
+		Type: v1.SecretTypeServiceAccountToken,
+	}
+
+	if _, _ = clientset.CoreV1().Secrets(cattleNamespace).Create(context.TODO(), tokenSecret, metav1.CreateOptions{}); err != nil && !errors.IsAlreadyExists(err) {
+		return "", fmt.Errorf("error creating service secret: %v", err)
+	}
+
 	start := time.Millisecond * 250
 	for i := 0; i < 5; i++ {
 		time.Sleep(start)
+
 		if serviceAccount, err = clientset.CoreV1().ServiceAccounts(cattleNamespace).Get(context.TODO(), serviceAccount.Name, metav1.GetOptions{}); err != nil {
 			return "", fmt.Errorf("error getting service account: %v", err)
 		}
 
 		if len(serviceAccount.Secrets) > 0 {
-			secret := serviceAccount.Secrets[0]
-			secretObj, err := clientset.CoreV1().Secrets(cattleNamespace).Get(context.TODO(), secret.Name, metav1.GetOptions{})
+			secretObj, err := clientset.CoreV1().Secrets(cattleNamespace).Get(context.TODO(), cattleSecretName, metav1.GetOptions{})
 			if err != nil {
 				return "", fmt.Errorf("error getting secret: %v", err)
 			}
@@ -108,8 +128,8 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 				return string(token), nil
 			}
 		}
-		start = start * 2
+		start *= 2
 	}
 
-	return "", errs.New("failed to fetch serviceAccountToken")
+	return "", errs.New("failed to fetch token")
 }

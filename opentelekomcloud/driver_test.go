@@ -39,8 +39,7 @@ func getDriverOpts(t *testing.T) *types.DriverOptions {
 	stringOptions := map[string]string{
 		"token":                canonicalOpts.TokenID,
 		"authenticationMode":   "rbac",
-		"availabilityZone":     "eu-de-03",
-		"bmsPeriodType":        "month",
+		"availabilityZone":     "eu-de-01",
 		"clusterEipShareType":  "PER",
 		"clusterEipType":       "5_bgp",
 		"clusterFlavor":        "cce.s1.small",
@@ -53,8 +52,8 @@ func getDriverOpts(t *testing.T) *types.DriverOptions {
 		"driverName":           kontainerDriverName,
 		"keyPair":              kpName,
 		"name":                 name,
-		"nodeFlavor":           "s2.large.2",
-		"nodeOs":               "EulerOS 2.5",
+		"nodeFlavor":           "s3.large.2",
+		"nodeOs":               "EulerOS 2.9",
 		"password":             canonicalOpts.Password,
 		"projectName":          canonicalOpts.TenantName,
 		"region":               "eu-de",
@@ -170,7 +169,6 @@ func TestDriver_ClusterWorkflow(t *testing.T) {
 	info, err := driver.Create(ctx, driverOptions, nil)
 	require.NoError(t, err)
 	t.Log("Cluster created")
-
 	info, err = driver.PostCheck(ctx, info)
 	assert.NoError(t, err)
 	t.Log("Post Check done")

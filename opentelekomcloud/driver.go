@@ -247,7 +247,7 @@ func (d *CCEDriver) GetDriverCreateOptions(context.Context) (*types.DriverFlags,
 				Type:  types.StringType,
 				Usage: "The operation system of nodes",
 				Default: &types.Default{
-					DefaultString: "EulerOS 2.5",
+					DefaultString: "EulerOS 2.9",
 				},
 			},
 			"key-pair": {
@@ -517,7 +517,7 @@ func createCluster(client *services.Client, state *clusterState, opts *types.Dri
 	var nodeIDs []string
 	var clusterID string
 	nodeCount := opts.IntOptions["nodeCount"]
-	version := opts.StringOptions["clusterVersion"]
+	version := "v1.23"
 
 	cluster, err := client.CreateCluster(&services.CreateClusterOpts{
 		Name:            state.ClusterName,
@@ -766,6 +766,7 @@ func (d *CCEDriver) PostCheck(_ context.Context, clusterInfo *types.ClusterInfo)
 			}
 		}
 	}
+
 	logrus.Info("post-check completed successfully")
 	logrus.Debugf("info: %v", *clusterInfo)
 
