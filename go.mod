@@ -1,6 +1,6 @@
 module github.com/opentelekomcloud/kontainer-engine-driver-otc
 
-go 1.17
+go 1.21
 
 replace k8s.io/client-go => k8s.io/client-go v0.28.4
 
@@ -59,7 +59,7 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20201019141844-1ed22bb0c154 // indirect
+	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987 // indirect
 	google.golang.org/grpc v1.31.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
