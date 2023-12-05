@@ -517,7 +517,7 @@ func createCluster(client *services.Client, state *clusterState, opts *types.Dri
 	var nodeIDs []string
 	var clusterID string
 	nodeCount := opts.IntOptions["nodeCount"]
-	version := "v1.23"
+	version := opts.StringOptions["clusterVersion"]
 
 	cluster, err := client.CreateCluster(&services.CreateClusterOpts{
 		Name:            state.ClusterName,
