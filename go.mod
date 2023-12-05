@@ -1,6 +1,6 @@
 module github.com/opentelekomcloud/kontainer-engine-driver-otc
 
-go 1.21
+go 1.20
 
 replace k8s.io/client-go => k8s.io/client-go v0.28.4
 
