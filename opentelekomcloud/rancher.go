@@ -14,6 +14,8 @@ import (
 )
 
 const (
+	defaultNamespace          = "default"
+	defaultSecretName         = "default-secret"
 	cattleSecretName          = "cattle-secret"
 	cattleNamespace           = "cattle-system"
 	clusterAdmin              = "cluster-admin"
@@ -41,6 +43,11 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 				Kind:      "Secret",
 				Namespace: cattleNamespace,
 				Name:      cattleSecretName,
+			},
+			{
+				Kind:      "Secret",
+				Namespace: defaultNamespace,
+				Name:      defaultSecretName,
 			},
 		},
 	}
