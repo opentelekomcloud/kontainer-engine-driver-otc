@@ -45,9 +45,15 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 		},
 	}
 
-	serviceAccount, err = clientset.CoreV1().ServiceAccounts(cattleNamespace).Create(context.TODO(), serviceAccount, metav1.CreateOptions{})
-	if err != nil && !errors.IsAlreadyExists(err) {
-		return "", fmt.Errorf("error creating service account: %v", err)
+	clusterServAcc, err := clientset.CoreV1().ServiceAccounts(cattleNamespace).Get(context.TODO(), kontainerEngine, metav1.GetOptions{})
+	switch {
+	case errors.IsNotFound(err):
+		clusterServAcc, err = clientset.CoreV1().ServiceAccounts(cattleNamespace).Create(context.TODO(), serviceAccount, metav1.CreateOptions{})
+		if err != nil {
+			return "", fmt.Errorf("error creating service account: %v", err)
+		}
+	case err != nil:
+		return "", fmt.Errorf("error getting service account: %v", err)
 	}
 
 	adminRole := &rbacV1.ClusterRole{
@@ -81,7 +87,7 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 		Subjects: []rbacV1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      serviceAccount.Name,
+				Name:      clusterServAcc.Name,
 				Namespace: cattleNamespace,
 			},
 		},
@@ -101,13 +107,13 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 			Namespace: cattleNamespace,
 			Annotations: map[string]string{
 				"kubernetes.io/service-account.name": kontainerEngine,
-				"kubernetes.io/service-account.uid":  string(serviceAccount.UID),
+				"kubernetes.io/service-account.uid":  string(clusterServAcc.UID),
 			},
 		},
 		Type: v1.SecretTypeServiceAccountToken,
 	}
 
-	if _, _ = clientset.CoreV1().Secrets(cattleNamespace).Create(context.TODO(), tokenSecret, metav1.CreateOptions{}); err != nil && !errors.IsAlreadyExists(err) {
+	if _, err = clientset.CoreV1().Secrets(cattleNamespace).Create(context.TODO(), tokenSecret, metav1.CreateOptions{}); err != nil && !errors.IsAlreadyExists(err) {
 		return "", fmt.Errorf("error creating service secret: %v", err)
 	}
 
@@ -115,11 +121,11 @@ func generateServiceAccountToken(clientset kubernetes.Interface) (string, error)
 	for i := 0; i < 5; i++ {
 		time.Sleep(start)
 
-		if serviceAccount, err = clientset.CoreV1().ServiceAccounts(cattleNamespace).Get(context.TODO(), serviceAccount.Name, metav1.GetOptions{}); err != nil {
+		if clusterServAcc, err = clientset.CoreV1().ServiceAccounts(cattleNamespace).Get(context.TODO(), clusterServAcc.Name, metav1.GetOptions{}); err != nil {
 			return "", fmt.Errorf("error getting service account: %v", err)
 		}
 
-		if len(serviceAccount.Secrets) > 0 {
+		if len(clusterServAcc.Secrets) > 0 {
 			secretObj, err := clientset.CoreV1().Secrets(cattleNamespace).Get(context.TODO(), cattleSecretName, metav1.GetOptions{})
 			if err != nil {
 				return "", fmt.Errorf("error getting secret: %v", err)

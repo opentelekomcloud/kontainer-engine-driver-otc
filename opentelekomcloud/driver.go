@@ -22,13 +22,11 @@ import (
 )
 
 const (
-	retries        = 5
-	pollInterval   = 30
-	baseServiceURL = "otc.t-systems.com"
+	retries      = 5
+	pollInterval = 30
 )
 
 var (
-	authURL         = fmt.Sprintf("https://iam.eu-de.%s/v3", baseServiceURL)
 	clusterVersions = []string{
 		"v1.23",
 		"v1.25",
@@ -105,6 +103,10 @@ func (d *CCEDriver) GetDriverCreateOptions(context.Context) (*types.DriverFlags,
 				Usage: "Cluster description",
 			},
 			// Authentication options
+			"auth-url": {
+				Type:  types.StringType,
+				Usage: "OTC auth url",
+			},
 			"domain-name": {
 				Type:  types.StringType,
 				Usage: "OTC domain name",
@@ -361,7 +363,7 @@ func optsToState(opts *types.DriverOptions) (*clusterState, error) {
 	projectName := strOpt("project-name", "projectName")
 	state := &clusterState{
 		AuthInfo: openstack.AuthInfo{
-			AuthURL:     authURL,
+			AuthURL:     strOpt("auth-url", "authUrl"),
 			Token:       strOpt("token"),
 			Username:    strOpt("username"),
 			Password:    strOpt("password"),
