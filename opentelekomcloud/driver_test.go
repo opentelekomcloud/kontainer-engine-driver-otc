@@ -37,6 +37,7 @@ func getDriverOpts(t *testing.T) *types.DriverOptions {
 	canonicalOpts, ok := opts.(golangsdk.AuthOptions)
 	require.True(t, ok, "Incorrect auth options provided")
 	stringOptions := map[string]string{
+		"authUrl":              "https://iam.eu-de.otc.t-systems.com/v3",
 		"token":                canonicalOpts.TokenID,
 		"authenticationMode":   "rbac",
 		"availabilityZone":     "eu-de-01",
