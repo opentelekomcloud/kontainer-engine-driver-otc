@@ -7,6 +7,9 @@ Kontainer Engine Driver OTC
 
 This repository contains the Open Telekom Cloud CCE cluster driver for the rancher server.
 
+Frontend part: 
+ - https://github.com/opentelekomcloud/ui-cluster-driver-otc
+
 ## Building
 
 `make build`
