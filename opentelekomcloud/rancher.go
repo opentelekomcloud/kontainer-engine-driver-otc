@@ -3,6 +3,8 @@ package opentelekomcloud
 import (
 	"context"
 	"fmt"
+	"time"
+
 	corecontrollers "github.com/rancher/wrangler/v2/pkg/generated/controllers/core/v1"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
@@ -13,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"time"
 )
 
 const (
@@ -240,7 +241,6 @@ func secretTemplate(sa *v1.ServiceAccount) *v1.Secret {
 		},
 		Type: v1.SecretTypeServiceAccountToken,
 	}
-
 }
 
 // serviceAccountSecretPrefix returns the prefix that will be used to generate the secret for the given service account.
