@@ -54,11 +54,11 @@ require (
 	github.com/rancher/rke v1.1.0-rc9.0.20200327175519-ecc629f2c3d5 // indirect
 	github.com/rancher/types v0.0.0-20200326224235-0d1e1dcc8d55 // indirect
 	github.com/rancher/wrangler v1.1.1 // indirect
-	golang.org/x/net v0.19.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/term v0.15.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/term v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
