@@ -7,6 +7,8 @@ Kontainer Engine Driver OTC
 
 This repository contains the Open Telekom Cloud CCE cluster driver for the rancher server.
 
+> !Important note: The current available Kontainer Engine Driver for OTC is not up to date and does not work properly. You need to update the Driver to the latest version to get this properly running. We have an open issue to get this fixed @Rancher, but the approval is currently missing.
+
 Frontend part: 
  - https://github.com/opentelekomcloud/ui-cluster-driver-otc
 
@@ -48,8 +50,6 @@ release and can be downloaded from one of those URLs directly.
 > To make successfully connection of all Rancher agents to your cluster you must give access to internet for you nodes.
 For example, you can do that by creating `NAT Gateway` for VPC where your cluster will be hosted. Then add `SNAT` rule for your `VPC` and `subnet` and passing `EIP`
 
-> ***WAITING FOR FIX*** from ***RANCHER***: Currently after cluster provision you must change `fleet-agent` pod image from default `image: rancher/fleet-agent:v0.8.1` to `image: rancher/fleet-agent:v0.9.0`
-
 1. Go to `Clusters` and click `Create`
 2. Click on `Open Telekom Cloud CCE`
 3. Choose authentication method `AK/SK` or `Token-based`, and fill required fields, such as `Region`, `Domain Name`, `Project Name`, `Username`, `Password`, `Access Key Id`, `Secret Access Key`.
@@ -58,7 +58,6 @@ For example, you can do that by creating `NAT Gateway` for VPC where your cluste
    
    Then click `Next: Configure Cluster`.
 4. On `Cluster Configuration` choose `Kubernetes version`
-   > ***Supported versions are 1.23 and 1.25***)
 
    `Cluster flavor`, `Network mode` and `CIDR`.
 
